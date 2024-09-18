@@ -1,0 +1,15 @@
+system:
+  driver_name: "BRobot"
+communicate:
+  address: "192.168.113.235"
+  info_publish_rate: 500
+  state_publish_rate: 500
+robot:
+  dof_head: 2
+  dof_waist: 3
+  dof_left_arm: 7
+  dof_right_arm: 7
+  dof_left_leg: 6
+  dof_right_leg: 6
+ethercat:
+  double ec_cycle: 2
