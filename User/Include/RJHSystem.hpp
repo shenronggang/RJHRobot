@@ -71,5 +71,6 @@ public:
     void stop();
     void recvRobotCmd();
     void system_state_update();
+    void testMotion();
 };
 #endif // SYSTEM_H
