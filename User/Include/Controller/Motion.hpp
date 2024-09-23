@@ -5,6 +5,9 @@
 #include "DriverFactory.hpp"
 #include "LowFilter.h"
 #include "RobotData.h"
+#include "ik_7dof_ofst.h"
+#include "ik_7dof_ofst_terminate.h"
+#include "rt_nonfinite.h"
 
 class Motion
 {

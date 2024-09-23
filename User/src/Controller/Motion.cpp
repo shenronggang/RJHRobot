@@ -222,13 +222,13 @@ void Motion::robotMoveCartesion(RobotData::RobotInfo &robot_info_)
     int FOrB = 1;
     int LOrR = 1;
     double theta[7];
-    int *ik_state;
+    int ik_state;
     // b_lt_or_rt-- 暂时还没有用到
     // cur_theta-- 上一时刻关节角的值
     ik_7dof_ofst(z_alpha, y_beta, x_gamma, x, y, z, bet,
                  const_cur_theta, b_lt_or_rt, LOrR, FOrB,
                  theta, &ik_state);
-    if (ik_state[0] == 0){
+    if (ik_state == 0){
         for (int i = 0; i < 7; i++)
         {
             robot_move_joints.left_arm[i] = theta[i];
