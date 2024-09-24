@@ -123,7 +123,7 @@ void RJHSystem::motion_capture()
     if (system_state == SystemState::IDLE)
     {
         system_state = SystemState::MOTION_CAPTURE;
-        std::cout << "system state chang modle manual :" << std::endl;
+        std::cout << "system state chang modle motion_capture :" << std::endl;
     }
     else if (system_state == SystemState::MOTION_CAPTURE)
     {
@@ -153,7 +153,6 @@ void RJHSystem::manual()
         {
             motion->motionStateSwitch(4);
         }
-        // motion->motionStateSwitch(robot_data->robot_info_.robot_cmd_.running_mode);
         motion->robotMoveJoint(robot_data->robot_info_);
     }
     else
@@ -204,6 +203,7 @@ void RJHSystem::robot_state_publish(int rate)
     }
     std::cout << "[UdpPublish]: stop running robot status publish" << std::endl;
 }
+
 
 int main(int argc, char *argv[])
 {

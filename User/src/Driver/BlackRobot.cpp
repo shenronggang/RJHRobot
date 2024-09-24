@@ -284,9 +284,10 @@ int BlackRobot::fk(RobotJoints &robot_joint, RobotJoints &cartesion) const
 {
 
     R7_KINE left_rkine, right_rkine;
-    int dof = robot_joint_num.left_arm_num;
+    int dof = 7;
+    dof = robot_joint_num.left_arm_num;
     double left_arm_joint[dof], right_arm_joint[dof];
-    for (size_t i = 0; i < dof; i++)
+    for (int i = 0; i < dof; i++)
     {
         left_arm_joint[i] = (double)robot_joint.left_arm[i];
         right_arm_joint[i] = (double)robot_joint.right_arm[i];
@@ -295,6 +296,7 @@ int BlackRobot::fk(RobotJoints &robot_joint, RobotJoints &cartesion) const
     double right_arm_xyz[3], right_arm_rpy[3];
 
     init_R7_KINE2(&left_rkine, left_arm_joint, &dof, NULL, NULL);
+    init_R7_KINE2(&right_rkine, right_arm_joint, &dof, NULL, NULL);
     int left_ret = Kine_Forward(robot_names.left_arm, &left_rkine); // 正运动学求解
     get_R7_KINE_pose(&left_rkine, left_arm_xyz, left_arm_rpy);
 

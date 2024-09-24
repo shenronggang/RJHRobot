@@ -14,18 +14,18 @@ private:
     float acc = 20;        // 初始加速度，acc是全局变量
     float deltat = 0;      // 控制周期
     // 以上是运动参数
-    float m_lim = 0;                  // 惯量最小限幅
-    float k = 0;                      // 刚度系数
+    float m_lim = 1;                  // 惯量最小限幅
+    float k = 500;                      // 刚度系数
     float m = m_lim;                  // 惯量初始值，不可为0
-    float km = 20;                    // 变惯量 增益
-    unsigned char m_change = 0;       // 变惯量开关
+    float km = 1;                    // 变惯量 增益
+    unsigned char m_change = 1;       // 变惯量开关
     float b = 2 * 1.01 * sqrt(k * m); // 阻尼比取略＞1，防止超调
     // 以上是滤波器阻抗参数
 public:
-    LowFilter(unsigned char m_change = 0)
+    LowFilter(unsigned char m_change = 1)
         : theta_cur(0), acc_lim(16.67), vel_lim(2.61),
-          vel(0), acc(0), deltat(0.001), m_lim(0.01), k(500), m(m_lim),
-          km(10), m_change(m_change), b(2 * 1.1 * sqrt(k * m))
+          vel(0), acc(0), deltat(0.001), m_lim(1), k(500), m(m_lim),
+          km(1), m_change(m_change), b(2 * 1.1 * sqrt(k * m))
     {
     }
 

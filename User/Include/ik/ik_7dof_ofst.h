@@ -24,10 +24,10 @@ extern "C"
     //                          const double cur_theta[7], double b_lt_or_rt,
     //                          double LOrR, double FOrB, double theta[7],
     //                          double *ik_state);
-    extern void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
-                             double p_y, double p_z, double bet, const double cur_theta[7],
-                             int b_lt_or_rt, int LOrR, int FOrB, double theta[7],
-                             int *ik_state);
+    void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
+                    double p_y, double p_z, double bet, const double cur_theta[7],
+                    int b_lt_or_rt, int LOrR, int FOrB, double theta[7],
+                    int *ik_state);
 
 #ifdef __cplusplus
 }
