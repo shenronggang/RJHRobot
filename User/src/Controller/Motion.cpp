@@ -27,8 +27,8 @@ Motion::Motion(const std::string &driver_name) : driver_name(driver_name), filte
         std::cout << " " << robot_current_joints.right_arm[i];
     }
     // 持续下发关节角给驱动器
-    driver->get_robot_joints(robot_current_joints);
-    initFilterJoints(robot_current_joints);
+    
+    initFilterJoints();
     getFilterJoints(robot_joints_filtered);
     _moveDriverThread = std::thread(&Motion::_moveDriver, this);
     motion_state = MotionState::INIT_OK;
@@ -120,20 +120,21 @@ void Motion::setFilterJoints(DriverBase::RobotJoints &robot_joint)
         right_arm_filters[i].update(robot_joint.right_arm[i]);
     }
 }
-void Motion::initFilterJoints(DriverBase::RobotJoints &robot_joint)
+void Motion::initFilterJoints()
 {
+    driver->get_robot_joints(robot_current_joints);
     for (int i = 0; i < 2; i++)
     {
-        head_filters[i].init(robot_joint.head[i]);
+        head_filters[i].init(robot_current_joints.head[i]);
     }
     for (int i = 0; i < 3; i++)
     {
-        waist_filters[i].init(robot_joint.waist[i]);
+        waist_filters[i].init(robot_current_joints.waist[i]);
     }
     for (int i = 0; i < 7; i++)
     {
-        left_arm_filters[i].init(robot_joint.left_arm[i]);
-        right_arm_filters[i].init(robot_joint.right_arm[i]);
+        left_arm_filters[i].init(robot_current_joints.left_arm[i]);
+        right_arm_filters[i].init(robot_current_joints.right_arm[i]);
     }
 }
 
