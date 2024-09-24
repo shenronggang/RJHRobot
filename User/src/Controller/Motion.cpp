@@ -202,41 +202,51 @@ void Motion::robotMoveCartesion(RobotData::RobotInfo &robot_info_)
         robot_move_joints.left_arm[i] = robot_info_.joint_cmd_.basic_cmd_info.ee_motion[0][i];
         robot_move_joints.right_arm[i] = robot_info_.joint_cmd_.basic_cmd_info.ee_motion[1][i];
     }
-    driver->get_robot_joints(robot_current_joints);
-    double cur_theta[7]; 
-    for (int i = 0; i < 7; ++i)
-    {
-        cur_theta[i] = static_cast<double>(robot_current_joints.left_arm[i]);
-    }
-    // TODO: get current cartesion;
-    // left arm
-    double x = -338.5171; //(mm)
-    double y = 328.7387;
     double z = 56.3387;
-    double z_alpha = 1.3135; //% rad
-    double y_beta = 1.3982;
-    double x_gamma = -2.8824;
-    double bet = 0.2387;
-    const double* const_cur_theta = cur_theta;
-    int b_lt_or_rt = 1;
-    int FOrB = 1;
-    int LOrR = 1;
-    double theta[7];
-    int ik_state;
-    // b_lt_or_rt-- 暂时还没有用到
-    // cur_theta-- 上一时刻关节角的值
-    ik_7dof_ofst(z_alpha, y_beta, x_gamma, x, y, z, bet,
-                 const_cur_theta, b_lt_or_rt, LOrR, FOrB,
-                 theta, &ik_state);
-    if (ik_state == 0){
-        for (int i = 0; i < 7; i++)
+    for (int i = 0; i < 20; i++)
+    {
+        
+        driver->get_robot_joints(robot_current_joints);
+        robot_move_joints = robot_current_joints;
+        double cur_theta[7];
+        for (int i = 0; i < 7; ++i)
         {
-            robot_move_joints.left_arm[i] = theta[i];
+            cur_theta[i] = static_cast<double>(robot_current_joints.left_arm[i]);
         }
+        // TODO: get current cartesion;
+        // left arm
+        double x = -338.5171; //(mm)
+        double y = 328.7387;
+
+        double z_alpha = 1.3135; //% rad
+        double y_beta = 1.3982;
+        double x_gamma = -2.8824;
+        double bet = 0.2387;
+        const double *const_cur_theta = cur_theta;
+        int b_lt_or_rt = 1;
+        int FOrB = 1;
+        int LOrR = 1;
+        double theta[7];
+        int ik_state;
+        // b_lt_or_rt-- 暂时还没有用到
+        // cur_theta-- 上一时刻关节角的值
+        ik_7dof_ofst(z_alpha, y_beta, x_gamma, x, y, z, bet,
+                     const_cur_theta, b_lt_or_rt, LOrR, FOrB,
+                     theta, &ik_state);
+        if (ik_state == 0)
+        {
+            for (int i = 0; i < 7; i++)
+            {
+                robot_move_joints.left_arm[i] = static_cast<float>(driver->radToDeg(theta[i]));
+            }
+        }
+        driver->set_robot_joints(robot_move_joints);
+        setFilterJoints(robot_move_joints);
+        sleep(0.5);
+        z += 2;
     }
-    driver->set_robot_joints(robot_move_joints);
-    setFilterJoints(robot_move_joints);
 }
+
 Motion::~Motion()
 {
 }

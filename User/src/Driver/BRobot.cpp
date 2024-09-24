@@ -258,36 +258,36 @@ int BRobot::ik(RobotJoints &cartesion, RobotJoints &robot_joint) const
 
 int BRobot::fk(RobotJoints &robot_joint, RobotJoints &cartesion) const
 {
-    R7_KINE left_rkine, right_rkine;
-    int dof = robot_joint_num.left_arm_num;
-    double left_arm_joint[dof], right_arm_joint[dof];
-    for (size_t i = 0; i < dof; i++)
-    {
-        left_arm_joint[i] = (double)robot_joint.left_arm[i];
-        right_arm_joint[i] = (double)robot_joint.right_arm[i];
-    }
-    double left_arm_xyz[3], left_arm_rpy[3];
-    double right_arm_xyz[3], right_arm_rpy[3];
+    // R7_KINE left_rkine, right_rkine;
+    // int dof = robot_joint_num.left_arm_num;
+    // double left_arm_joint[dof], right_arm_joint[dof];
+    // for (size_t i = 0; i < dof; i++)
+    // {
+    //     left_arm_joint[i] = (double)robot_joint.left_arm[i];
+    //     right_arm_joint[i] = (double)robot_joint.right_arm[i];
+    // }
+    // double left_arm_xyz[3], left_arm_rpy[3];
+    // double right_arm_xyz[3], right_arm_rpy[3];
 
-    init_R7_KINE2(&left_rkine, left_arm_joint, &dof, NULL, NULL);
-    int left_ret = Kine_Forward(robot_names.left_arm, &left_rkine); // 正运动学求解
-    get_R7_KINE_pose(&left_rkine, left_arm_xyz, left_arm_rpy);
+    // init_R7_KINE2(&left_rkine, left_arm_joint, &dof, NULL, NULL);
+    // int left_ret = Kine_Forward(robot_names.left_arm, &left_rkine); // 正运动学求解
+    // get_R7_KINE_pose(&left_rkine, left_arm_xyz, left_arm_rpy);
 
-    init_R7_KINE2(&left_rkine, left_arm_joint, &dof, NULL, NULL);
-    int right_ret = Kine_Forward(robot_names.right_arm, &right_rkine); // 正运动学求解
-    if (left_ret != 0 || right_ret != 0)
-    {
-        return -1;
-    }
+    // init_R7_KINE2(&left_rkine, left_arm_joint, &dof, NULL, NULL);
+    // int right_ret = Kine_Forward(robot_names.right_arm, &right_rkine); // 正运动学求解
+    // if (left_ret != 0 || right_ret != 0)
+    // {
+    //     return -1;
+    // }
 
-    get_R7_KINE_pose(&left_rkine, right_arm_xyz, right_arm_rpy);
-    for (size_t i = 0; i < 3; i++)
-    {
-        cartesion.left_arm[i] = left_arm_xyz[i];
-        cartesion.left_arm[i + 3] = left_arm_rpy[i];
-        cartesion.right_arm[i] = right_arm_xyz[i];
-        cartesion.right_arm[i + 3] = right_arm_rpy[i];
-    }
+    // get_R7_KINE_pose(&left_rkine, right_arm_xyz, right_arm_rpy);
+    // for (size_t i = 0; i < 3; i++)
+    // {
+    //     cartesion.left_arm[i] = left_arm_xyz[i];
+    //     cartesion.left_arm[i + 3] = left_arm_rpy[i];
+    //     cartesion.right_arm[i] = right_arm_xyz[i];
+    //     cartesion.right_arm[i + 3] = right_arm_rpy[i];
+    // }
 
     return 0;
 }

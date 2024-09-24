@@ -18,9 +18,9 @@ private:
     std::unique_ptr<Motion> motion;
 
     // std::string address = "192.168.112.62";  //sunyusheng
-    std::string address = "192.168.113.209"; //chenchensheng
+    // std::string address = "192.168.113.209"; //chenchensheng
     // std::string address = "192.168.113.235"; //jiangzhengjie
-    // std::string address = "192.168.113.211"; //lizihan
+    std::string address = "192.168.113.211"; //lizihan
     RobotData *robot_data;
 
     UdpSubscriber *udp_subscriber;
@@ -71,6 +71,5 @@ public:
     void stop();
     void recvRobotCmd();
     void system_state_update();
-    void testMotion();
 };
 #endif // SYSTEM_H
