@@ -45,7 +45,7 @@ public:
     ~Motion();
     void getFilterJoints(DriverBase::RobotJoints &robot_joint);
     void setFilterJoints(DriverBase::RobotJoints &robot_joint);
-    void initFilterJoints(DriverBase::RobotJoints &robot_joint);
+    void initFilterJoints();
     void filterEnable(bool enable);
     void enableRobot();
     void diableRobot();

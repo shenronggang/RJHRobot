@@ -74,6 +74,7 @@ void RJHSystem::recvRobotCmd()
         else
         {
             motion->diableRobot();
+            motion->initFilterJoints();
         };
         lock.unlock();
         usleep(1000);
