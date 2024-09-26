@@ -12,6 +12,8 @@
 
 class DriverBase
 {
+protected:
+    mutable std::mutex ec_mtx;
 public:
     struct RobotJoints
     {
@@ -31,8 +33,6 @@ public:
     virtual int get_robot_joints(RobotJoints &rob_joints) const;
     virtual int set_robot_joints(RobotJoints &robot_joints) const;
     virtual int set_cartesion(RobotJoints &robot_joints) const;
-    virtual int ik(RobotJoints &cartesion, RobotJoints &robot_joint) const;
-    virtual int fk(RobotJoints &robot_joint, RobotJoints &cartesion) const;
     virtual int reset_driver_error() const;
     virtual void run_test() = 0;
     template <typename T>

@@ -6,7 +6,6 @@
 #include "LowFilter.h"
 #include "RobotData.h"
 #include "ik_7dof_ofst.h"
-#include "ik_7dof_ofst_terminate.h"
 #include "rt_nonfinite.h"
 
 class Motion
@@ -19,7 +18,7 @@ private:
     DriverBase::RobotJoints robot_move_joints;
     enum MotionState
     {
-        INIT = 0,
+        INIT=0,
         INIT_OK,
         READY,
         READY_OK,
@@ -37,7 +36,7 @@ private:
     std::mutex moving_mtx;
     std::atomic<bool> filter_enable;
     DriverBase::RobotJoints robot_joints_filtered;
-    int motor_on = 0;
+    bool motor_on = false;
     bool motor_running = true;
 
 public:
@@ -55,6 +54,7 @@ public:
     void robotMoveCartesion(RobotData::RobotInfo &robot_info_);
     void motionStateSwitch(int running_mode);
     int getMotionState();
+    void resetMotionError();
 };
 
 #endif // MOTION_H

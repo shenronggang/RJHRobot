@@ -54,8 +54,6 @@ public:
     int get_robot_joints(RobotJoints &rob_joints) const override;
     int set_robot_joints(RobotJoints &robot_joints) const override;
     int set_cartesion(RobotJoints &robot_joints) const override;
-    int ik(RobotJoints &cartesion, RobotJoints &robot_joint) const override;
-    int fk(RobotJoints &robot_joint, RobotJoints &cartesion) const override;
     int reset_driver_error() const override;
     void run_test();
     int set_axis_joint(const char *robot_name, int axis_ID = 1);

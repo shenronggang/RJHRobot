@@ -1,7 +1,7 @@
 /*
  * rt_nonfinite.c
  *
- * Code generation for function 'ik_7dof_ofst'
+ * Code generation for function 'forward_kinematic_with_ofst'
  *
  */
 
