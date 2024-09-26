@@ -25,7 +25,7 @@ void RJHSystem::start()
     joints_publish_thread = std::thread(&RJHSystem::robot_info_publish, this, info_publish_rate);
     state_publish_thread = std::thread(&RJHSystem::robot_state_publish, this, state_publish_rate);
     recvRobotCmd_thread = std::thread(&RJHSystem::recvRobotCmd, this);
-    // system_state_update_thread = std::thread(&RJHSystem::system_state_update, this);
+    // system_state_update_thread = std::thread(&RJHSystem::system_state_upda5te, this);
     while (running)
     {
         std::unique_lock<std::mutex> lock(robot_data_mutex);
@@ -60,13 +60,12 @@ void RJHSystem::recvRobotCmd()
     while (running)
     {
         std::unique_lock<std::mutex> lock(robot_data_mutex);
-        // system_state = static_cast<SystemState>(robot_data->robot_info_.robot_cmd_.motion_mode);
-        // motion->filterEnable(robot_data->robot_info_.robot_cmd_.filter_enable);
+        // 判断运行状态命令
         if (robot_data->robot_info_.robot_cmd_.running_mode == 1)
         {
             motion->motionStateSwitch(3);
         }
-
+        // 判断使能命令
         if (robot_data->robot_info_.robot_cmd_.enable == 1)
         {
             motion->enableRobot();
@@ -75,6 +74,16 @@ void RJHSystem::recvRobotCmd()
         {
             motion->diableRobot();
             motion->initFilterJoints();
+        };
+        // 判断复位命令
+        if (robot_data->robot_info_.robot_cmd_.reset_error == 1)
+        {
+            motion->resetMotionError();
+            robot_data->robot_info_.robot_state_.reset_feedback == 1;
+        }
+        else
+        {
+            robot_data->robot_info_.robot_state_.reset_feedback == 0;
         };
         lock.unlock();
         usleep(1000);
@@ -198,13 +207,12 @@ void RJHSystem::robot_state_publish(int rate)
                                          (struct sockaddr *)&status_publisher->server_addr_, status_publisher->len);
         if (sent_bytes_test < 0)
         {
-            perror("sendto");
+            perror("sendto error");
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(rate));
     }
     std::cout << "[UdpPublish]: stop running robot status publish" << std::endl;
 }
-
 
 int main(int argc, char *argv[])
 {

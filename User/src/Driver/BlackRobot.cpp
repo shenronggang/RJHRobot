@@ -24,11 +24,13 @@ BlackRobot::BlackRobot()
     std::cout << "robot_name: " << robot_name << std::endl;
     // 获取索要机器人名称
     robot_names = get_robot_names();
+    std::cout << "robot_names Head: " << robot_names.head << std::endl;
     std::cout << "robot_names Waist: " << robot_names.waist << std::endl;
     std::cout << "robot_names Left Hand: " << robot_names.left_arm << std::endl;
     std::cout << "robot_names Right Hand: " << robot_names.right_arm << std::endl;
     // 获取机器人关节数目
     robot_joint_num = get_joints_num();
+    std::cout << "robot_joint_num Head: " << robot_joint_num.head_num << std::endl;
     std::cout << "robot_joint_num Waist: " << robot_joint_num.waist_num << std::endl;
     std::cout << "robot_joint_num Left Hand: " << robot_joint_num.left_arm_num << std::endl;
     std::cout << "robot_joint_num Right Hand: " << robot_joint_num.right_arm_num << std::endl;
@@ -82,6 +84,7 @@ int BlackRobot::get_robot_joints(RobotJoints &rob_joints) const
      */
     double head[2], waist[3], left_arm[7], right_arm[7];
     int res = 0;
+    std::lock_guard<std::mutex> lock(ec_mtx);
     int res_head = GetGroupPosition(robot_names.head, head);
     for (int i = 0; i < 2; i++)
     {
@@ -106,13 +109,13 @@ int BlackRobot::get_robot_joints(RobotJoints &rob_joints) const
         right_arm[i] = radToDeg(right_arm[i]);
         rob_joints.right_arm[i] = static_cast<float>(right_arm[i]);
     }
-    if (res_head > 0)
+    if (res_head != 0)
         res |= (1 << 0);
-    if (res_waist > 0)
+    if (res_waist != 0)
         res |= (1 << 1);
-    if (res_left_arm > 0)
+    if (res_left_arm != 0)
         res |= (1 << 2);
-    if (res_right_arm > 0)
+    if (res_right_arm != 0)
         res |= (1 << 3);
     return res;
 }
@@ -125,18 +128,19 @@ int BlackRobot::enable_robot() const
      * 机器人所有关节上使能。
      *
      */
+    std::lock_guard<std::mutex> lock(ec_mtx);
     int result = 0, res;
     res = group_power_on(robot_names.head);
-    if (res > 0)
+    if (res != 0)
         result |= (1 << 0);
     res = group_power_on(robot_names.waist);
-    if (res > 0)
+    if (res != 0)
         result |= (1 << 1);
     res = group_power_on(robot_names.left_arm);
-    if (res > 0)
+    if (res != 0)
         result |= (1 << 2);
     res = group_power_on(robot_names.right_arm);
-    if (res > 0)
+    if (res != 0)
         result |= (1 << 3);
     return result;
 }
@@ -149,18 +153,19 @@ int BlackRobot::disable_robot() const
      * 机器人所有关节下使能。
      *
      */
+    std::lock_guard<std::mutex> lock(ec_mtx);
     int result = 0, res;
     res = group_power_off(robot_names.head);
-    if (res > 0)
+    if (res != 0)
         result |= (1 << 0);
     res = group_power_off(robot_names.waist);
-    if (res > 0)
+    if (res != 0)
         result |= (1 << 1);
     res = group_power_off(robot_names.left_arm);
-    if (res > 0)
+    if (res != 0)
         result |= (1 << 2);
     res = group_power_off(robot_names.right_arm);
-    if (res > 0)
+    if (res != 0)
         result |= (1 << 3);
     return result;
 }
@@ -178,7 +183,7 @@ int BlackRobot::set_robot_joints(RobotJoints &robot_joints) const
      */
     int res = 0;
     double head[2], waist[3], left_arm[7], right_arm[7];
-
+    std::lock_guard<std::mutex> lock(ec_mtx);
     for (int i = 0; i < 2; i++)
     {
         head[i] = static_cast<double>(degToRad(robot_joints.head[i]));
@@ -195,17 +200,17 @@ int BlackRobot::set_robot_joints(RobotJoints &robot_joints) const
     {
         right_arm[i] = static_cast<double>(degToRad(robot_joints.right_arm[i]));
     }
-    int res_head = SetGroupPosition(robot_names.head, head);
+    // int res_head = SetGroupPosition(robot_names.head, head);
     int res_waist = SetGroupPosition(robot_names.waist, waist);
     int res_left_arm = SetGroupPosition(robot_names.left_arm, left_arm);
     int res_right_arm = SetGroupPosition(robot_names.right_arm, right_arm);
-    if (res_head > 0)
-        res |= (1 << 0);
-    if (res_waist > 0)
+    // if (res_head != 0)
+    //     res |= (1 << 0);
+    if (res_waist != 0)
         res |= (1 << 1);
-    if (res_left_arm > 0)
+    if (res_left_arm != 0)
         res |= (1 << 2);
-    if (res_right_arm > 0)
+    if (res_right_arm != 0)
         res |= (1 << 3);
     return res;
 }
@@ -220,103 +225,6 @@ int BlackRobot::set_cartesion(RobotJoints &robot_joints) const
      * @return res 逆解失败返回-1,超过关节位置约束的0.8倍, 返回超限轴ID, 否则返回0
      */
     return 1;
-}
-
-int BlackRobot::ik(RobotJoints &cartesion, RobotJoints &robot_joint) const
-{
-    /**
-     * @brief 逆运动学
-     *
-     * 使用控制器默认逆解方式,先获取当前关节角,作为当前位置,再将输入笛卡尔位置进行逆解
-     *
-     * @param cartesion 关节角结构体,左右手中存放的是xyz,rpy+臂形角
-     * @param robot_joint 关节角结构体,逆解后得到的角度
-     * @return res 逆解失败返回-1,超过关节位置约束的0.8倍, 返回超限轴ID, 否则返回0
-     */
-    robot_joint = cartesion;
-    double left_arm_joint[10], right_arm_joint[10];
-    R7_KINE left_arm_rkine, right_arm_rkine;
-    double left_arm_xyz[3], right_arm_xyz[3];
-    double left_arm_rpy[3], right_arm_rpy[3];
-    double left_joint_ik[10], right_joint_ik[10];
-    for (size_t i = 0; i < 3; i++)
-    {
-        left_arm_xyz[i] = static_cast<double>(cartesion.left_arm[i]);
-        left_arm_rpy[i] = static_cast<double>(cartesion.left_arm[i + 3]);
-        right_arm_xyz[3] = static_cast<double>(cartesion.right_arm[i]);
-        right_arm_rpy[3] = static_cast<double>(cartesion.right_arm[i + 3]);
-    }
-    GetGroupPosition(robot_names.left_arm, left_arm_joint);                 // 获取左臂关节位置
-    set_R7_KINE_joint(&left_arm_rkine, left_arm_joint);                     // 设置当前位置(用于选解)
-    set_R7_KINE_pose(&left_arm_rkine, left_arm_xyz, left_arm_rpy);          // 设置待求目标
-    int left_inv_ret = Kine_Inverse(robot_names.left_arm, &left_arm_rkine); // 逆运动学
-
-    set_R7_KINE_joint(&right_arm_rkine, right_arm_joint);                      // 设置当前位置(用于选解)
-    set_R7_KINE_pose(&right_arm_rkine, right_arm_xyz, right_arm_rpy);          // 设置待求目标
-    GetGroupPosition(robot_names.right_arm, right_arm_joint);                  // 获取右臂关节位置
-    int right_inv_ret = Kine_Inverse(robot_names.right_arm, &right_arm_rkine); // 逆运动学
-    if (left_inv_ret != 0 && right_inv_ret != 0)
-    {
-        return -1;
-    }
-    get_R7_KINE_joint(&left_arm_rkine, left_joint_ik);   // 对应rkine.joint
-    get_R7_KINE_joint(&right_arm_rkine, right_joint_ik); // 对应rkine.joint
-    // 超过关节位置约束的0.8倍, 返回超限轴ID, 否则返回0
-    int left_ret = IsRobotPositionLimitMargin(robot_names.left_arm, left_joint_ik, 0.8);
-    if (left_ret != 0)
-    {
-        return left_ret;
-    }
-    int right_ret = IsRobotPositionLimitMargin(robot_names.right_arm, right_joint_ik, 0.8);
-    if (right_ret != 0)
-    {
-        return right_ret;
-    }
-    for (size_t i = 0; i < 7; i++)
-    {
-        robot_joint.left_arm[i] = static_cast<double>(radToDeg(left_joint_ik[i]));
-        robot_joint.right_arm[i] = static_cast<double>(radToDeg(right_joint_ik[i]));
-    }
-    return 0;
-}
-
-int BlackRobot::fk(RobotJoints &robot_joint, RobotJoints &cartesion) const
-{
-
-    R7_KINE left_rkine, right_rkine;
-    int dof = 7;
-    dof = robot_joint_num.left_arm_num;
-    double left_arm_joint[dof], right_arm_joint[dof];
-    for (int i = 0; i < dof; i++)
-    {
-        left_arm_joint[i] = (double)robot_joint.left_arm[i];
-        right_arm_joint[i] = (double)robot_joint.right_arm[i];
-    }
-    double left_arm_xyz[3], left_arm_rpy[3];
-    double right_arm_xyz[3], right_arm_rpy[3];
-
-    init_R7_KINE2(&left_rkine, left_arm_joint, &dof, NULL, NULL);
-    init_R7_KINE2(&right_rkine, right_arm_joint, &dof, NULL, NULL);
-    int left_ret = Kine_Forward(robot_names.left_arm, &left_rkine); // 正运动学求解
-    get_R7_KINE_pose(&left_rkine, left_arm_xyz, left_arm_rpy);
-
-    init_R7_KINE2(&left_rkine, left_arm_joint, &dof, NULL, NULL);
-    int right_ret = Kine_Forward(robot_names.right_arm, &right_rkine); // 正运动学求解
-    if (left_ret != 0 || right_ret != 0)
-    {
-        return -1;
-    }
-
-    get_R7_KINE_pose(&left_rkine, right_arm_xyz, right_arm_rpy);
-    for (size_t i = 0; i < 3; i++)
-    {
-        cartesion.left_arm[i] = left_arm_xyz[i];
-        cartesion.left_arm[i + 3] = left_arm_rpy[i];
-        cartesion.right_arm[i] = right_arm_xyz[i];
-        cartesion.right_arm[i + 3] = right_arm_rpy[i];
-    }
-
-    return 0;
 }
 
 int BlackRobot::reset_driver_error() const

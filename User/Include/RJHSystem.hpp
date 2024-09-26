@@ -10,17 +10,18 @@
 #include <RobotData.h>
 #include <HYYRobotInterface.h>
 #include <Motion.hpp>
+#include <yaml-cpp/yaml.h>
 
 class RJHSystem
 {
 private:
-    string driver_name = "BRobot";
+    string driver_name = "BlackRobot";
     std::unique_ptr<Motion> motion;
 
     // std::string address = "192.168.112.62";  //sunyusheng
-    std::string address = "192.168.113.209"; //chenchensheng
+    // std::string address = "192.168.113.209"; //chenchensheng
     // std::string address = "192.168.113.235"; //jiangzhengjie
-    // std::string address = "192.168.113.211"; //lizihan
+    std::string address = "192.168.113.211"; //lizihan
     RobotData *robot_data;
 
     UdpSubscriber *udp_subscriber;
@@ -54,7 +55,7 @@ private:
         MANUAL,
         AUTO,
         DEMONSTRATOR,
-        MOTION_CAPTURE
+        MOTION_CAPTURE,
     };
     SystemState system_state = SystemState::IDLE;
     void idle();

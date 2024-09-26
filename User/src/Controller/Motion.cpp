@@ -27,7 +27,7 @@ Motion::Motion(const std::string &driver_name) : driver_name(driver_name), filte
         std::cout << " " << robot_current_joints.right_arm[i];
     }
     // 持续下发关节角给驱动器
-    
+
     initFilterJoints();
     getFilterJoints(robot_joints_filtered);
     _moveDriverThread = std::thread(&Motion::_moveDriver, this);
@@ -40,24 +40,19 @@ void Motion::_moveDriver()
     while (motor_running)
     {
         getFilterJoints(robot_joints_filtered);
-        if (motion_state == MotionState::RUN && motor_on == 0)
+        if (motion_state == MotionState::RUN && motor_on == 1)
         {
             if (filter_enable)
             {
-                // getFilterJoints(robot_joints_filtered);
-                driver->set_robot_joints(robot_joints_filtered);
-                // std::cout << "robot move joints by filter " << robot_joints_filtered.left_arm[4] << std::endl;
+                int res = driver->set_robot_joints(robot_joints_filtered);
+                if (res != 0)
+                {
+                    printf("set move joints to ethercat error: %d", res);
+                }
             }
         }
-        // else if (motion_state == MotionState::READY_OK && motor_on == 0)
-        // {
-        //     driver->get_robot_joints(robot_current_joints);
-        //     driver->set_robot_joints(robot_current_joints);
-        //     std::cout << "robot move joints by current " << std::endl;
-        // }
         else
         {
-            // std::cout << "robot move joints by current " << std::endl;
         }
         usleep(1000);
     }
@@ -120,6 +115,7 @@ void Motion::setFilterJoints(DriverBase::RobotJoints &robot_joint)
         right_arm_filters[i].update(robot_joint.right_arm[i]);
     }
 }
+
 void Motion::initFilterJoints()
 {
     driver->get_robot_joints(robot_current_joints);
@@ -140,17 +136,45 @@ void Motion::initFilterJoints()
 
 void Motion::enableRobot()
 {
-    motor_on = driver->enable_robot();
+    if (motor_on == false)
+    {
+        int res = driver->enable_robot();
+        if (res == 0)
+        {
+            motor_on = true;
+        }
+        else
+        {
+            motor_on == false;
+            printf("enable robot error: %d", res);
+        }
+    }
 }
 
 void Motion::diableRobot()
 {
-    driver->disable_robot();
+    if (motor_on == true)
+    {
+        int res = driver->disable_robot();
+        if (res == 0)
+        {
+            motor_on = false;
+        }
+        else
+        {
+            motor_on = true;
+            printf("disable robot error: %d", res);
+        }
+    }
 }
 
 void Motion::getCurrentJoints(RobotData::RobotInfo &robot_info_)
 {
-    driver->get_robot_joints(robot_current_joints);
+    int res = driver->get_robot_joints(robot_current_joints);
+    if (res != 0)
+    {
+        printf("get current joints form ethercat error: %d", res);
+    }
     for (int i = 0; i < 2; i++)
     {
         robot_info_.robot_send_info_.joint_q_head[i] = robot_current_joints.head[i];
@@ -204,9 +228,8 @@ void Motion::robotMoveCartesion(RobotData::RobotInfo &robot_info_)
         robot_move_joints.right_arm[i] = robot_info_.joint_cmd_.basic_cmd_info.ee_motion[1][i];
     }
     double z = 56.3387;
-    for (int i = 0; i < 20; i++)
+    for (int i = 0; i < 1; i++)
     {
-        
         driver->get_robot_joints(robot_current_joints);
         robot_move_joints = robot_current_joints;
         double cur_theta[7];
@@ -224,7 +247,14 @@ void Motion::robotMoveCartesion(RobotData::RobotInfo &robot_info_)
         double x_gamma = -2.8824;
         double bet = 0.2387;
         const double *const_cur_theta = cur_theta;
-        int b_lt_or_rt = 1;
+        // double _jntLim[14] = {-150, -90, -180, -50, -180, 0, -90, 90, 90, 180, 165, 180, 180, 90};
+        double _jntLim[14] = {-150, 90, -90, 90, -180, 180, -50, 165, -180, 180, 0, 180, -90, 90};
+        for (int i = 0; i < 14; i++)
+        {
+            _jntLim[i] = driver->degToRad(_jntLim[i]);
+        }
+
+        int b_lt_or_rt = 0; // 0：左臂 1：右臂
         int FOrB = 1;
         int LOrR = 1;
         double theta[7];
@@ -233,7 +263,7 @@ void Motion::robotMoveCartesion(RobotData::RobotInfo &robot_info_)
         // cur_theta-- 上一时刻关节角的值
         ik_7dof_ofst(z_alpha, y_beta, x_gamma, x, y, z, bet,
                      const_cur_theta, b_lt_or_rt, LOrR, FOrB,
-                     theta, &ik_state);
+                     _jntLim, theta, &ik_state);
         if (ik_state == 0)
         {
             for (int i = 0; i < 7; i++)
@@ -241,13 +271,18 @@ void Motion::robotMoveCartesion(RobotData::RobotInfo &robot_info_)
                 robot_move_joints.left_arm[i] = static_cast<float>(driver->radToDeg(theta[i]));
             }
         }
-        driver->set_robot_joints(robot_move_joints);
+        else
+        {
+            std::cout << "ik_state: " << ik_state << std::endl;
+        }
         setFilterJoints(robot_move_joints);
         sleep(0.5);
         z += 2;
     }
 }
-
+void Motion::resetMotionError(){
+    driver->reset_driver_error();
+}
 Motion::~Motion()
 {
 }
