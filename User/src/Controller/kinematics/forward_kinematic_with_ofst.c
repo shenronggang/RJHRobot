@@ -15,10 +15,10 @@
 #include <string.h>
 
 /* Function Definitions */
-void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
-                                 const double alpha_arr[7],
-                                 const double d_arr[7],
-                                 const double theta_arr[7], double carte[3],
+void forward_kinematic_with_ofst(double theta[7], double a_arr[7],
+                                 double alpha_arr[7],
+                                 double d_arr[7],
+                                 double theta_arr[7], double carte[3],
                                  double eulVal[3], double *bet, int *LOrR,
                                  int *FOrB)
 {
@@ -69,30 +69,37 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
   int i1;
   int i2;
   signed char forwardMat_tmp[16];
-  if (!isInitialized_forward_kinematic_with_ofst) {
+  if (!isInitialized_forward_kinematic_with_ofst)
+  {
     forward_kinematic_with_ofst_initialize();
   }
   *FOrB = -1;
   *LOrR = !(theta[3] < 0.0);
-  if ((theta[4] >= -1.5707963267948966) && (theta[4] <= 1.5707963267948966)) {
+  if ((theta[4] >= -1.5707963267948966) && (theta[4] <= 1.5707963267948966))
+  {
     *FOrB = 1;
-  } else if (((theta[4] > 1.5707963267948966) &&
-              (theta[4] <= 3.1415926535897931)) ||
-             ((theta[4] >= -3.1415926535897931) &&
-              (theta[4] < -1.5707963267948966))) {
+  }
+  else if (((theta[4] > 1.5707963267948966) &&
+            (theta[4] <= 3.1415926535897931)) ||
+           ((theta[4] >= -3.1415926535897931) &&
+            (theta[4] < -1.5707963267948966)))
+  {
     *FOrB = 0;
   }
-  for (i = 0; i < 16; i++) {
+  for (i = 0; i < 16; i++)
+  {
     forwardMat_tmp[i] = 0;
   }
   forwardMat_tmp[0] = 1;
   forwardMat_tmp[5] = 1;
   forwardMat_tmp[10] = 1;
   forwardMat_tmp[15] = 1;
-  for (i = 0; i < 16; i++) {
+  for (i = 0; i < 16; i++)
+  {
     forwardMat[i] = forwardMat_tmp[i];
   }
-  for (b_i = 0; b_i < 7; b_i++) {
+  for (b_i = 0; b_i < 7; b_i++)
+  {
     fir_res = alpha_arr[b_i];
     Tx_alpha_tmp = sin(fir_res);
     scale = cos(fir_res);
@@ -115,12 +122,14 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
     TP6_inv[11] = 0.0;
     TP6_inv[12] = 0.0;
     TP6_inv[15] = 1.0;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
       fir_res = forwardMat[i];
       Tx_alpha_tmp = forwardMat[i + 4];
       scale = forwardMat[i + 8];
       t = forwardMat[i + 12];
-      for (i1 = 0; i1 < 4; i1++) {
+      for (i1 = 0; i1 < 4; i1++)
+      {
         i2 = i1 << 2;
         T_0_6[i + i2] =
             ((fir_res * TP6_inv[i2] + Tx_alpha_tmp * TP6_inv[i2 + 1]) +
@@ -144,12 +153,14 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
     TP6_inv[13] = 0.0;
     TP6_inv[14] = 0.0;
     TP6_inv[15] = 1.0;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
       fir_res = T_0_6[i];
       Tx_alpha_tmp = T_0_6[i + 4];
       scale = T_0_6[i + 8];
       t = T_0_6[i + 12];
-      for (i1 = 0; i1 < 4; i1++) {
+      for (i1 = 0; i1 < 4; i1++)
+      {
         i2 = i1 << 2;
         forwardMat[i + i2] =
             ((fir_res * TP6_inv[i2] + Tx_alpha_tmp * TP6_inv[i2 + 1]) +
@@ -173,12 +184,14 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
     TP6_inv[11] = 0.0;
     TP6_inv[14] = 0.0;
     TP6_inv[15] = 1.0;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
       fir_res = forwardMat[i];
       Tx_alpha_tmp = forwardMat[i + 4];
       scale = forwardMat[i + 8];
       t = forwardMat[i + 12];
-      for (i1 = 0; i1 < 4; i1++) {
+      for (i1 = 0; i1 < 4; i1++)
+      {
         i2 = i1 << 2;
         T_0_6[i + i2] =
             ((fir_res * TP6_inv[i2] + Tx_alpha_tmp * TP6_inv[i2 + 1]) +
@@ -202,12 +215,14 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
     TP6_inv[12] = 0.0;
     TP6_inv[13] = 0.0;
     TP6_inv[15] = 1.0;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
       fir_res = T_0_6[i];
       Tx_alpha_tmp = T_0_6[i + 4];
       scale = T_0_6[i + 8];
       t = T_0_6[i + 12];
-      for (i1 = 0; i1 < 4; i1++) {
+      for (i1 = 0; i1 < 4; i1++)
+      {
         i2 = i1 << 2;
         forwardMat[i + i2] =
             ((fir_res * TP6_inv[i2] + Tx_alpha_tmp * TP6_inv[i2 + 1]) +
@@ -258,13 +273,18 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
   /*  end */
   y_beta = rt_atan2d_snf(forwardMat[8], sqrt(forwardMat[0] * forwardMat[0] +
                                              forwardMat[4] * forwardMat[4]));
-  if (fabs(y_beta - 1.5707963267948966) < 1.0E-6) {
+  if (fabs(y_beta - 1.5707963267948966) < 1.0E-6)
+  {
     eulVal[0] = 0.0;
     eulVal[2] = rt_atan2d_snf(forwardMat[1], forwardMat[5]);
-  } else if (fabs(y_beta - -1.5707963267948966) < 1.0E-6) {
+  }
+  else if (fabs(y_beta - -1.5707963267948966) < 1.0E-6)
+  {
     eulVal[0] = 0.0;
     eulVal[2] = rt_atan2d_snf(forwardMat[1], forwardMat[5]);
-  } else {
+  }
+  else
+  {
     Tx_alpha_tmp = cos(y_beta);
     eulVal[2] = rt_atan2d_snf(-forwardMat[4] / Tx_alpha_tmp,
                               forwardMat[0] / Tx_alpha_tmp);
@@ -273,10 +293,12 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
   }
   eulVal[1] = y_beta;
   /*  计算臂型角 */
-  for (i = 0; i < 16; i++) {
+  for (i = 0; i < 16; i++)
+  {
     forwardMat[i] = forwardMat_tmp[i];
   }
-  for (b_i = 0; b_i < 6; b_i++) {
+  for (b_i = 0; b_i < 6; b_i++)
+  {
     fir_res = dv[b_i];
     Tx_alpha_tmp = sin(fir_res);
     scale = cos(fir_res);
@@ -299,12 +321,14 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
     TP6_inv[11] = 0.0;
     TP6_inv[12] = 0.0;
     TP6_inv[15] = 1.0;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
       fir_res = forwardMat[i];
       Tx_alpha_tmp = forwardMat[i + 4];
       scale = forwardMat[i + 8];
       t = forwardMat[i + 12];
-      for (i1 = 0; i1 < 4; i1++) {
+      for (i1 = 0; i1 < 4; i1++)
+      {
         i2 = i1 << 2;
         T_0_6[i + i2] =
             ((fir_res * TP6_inv[i2] + Tx_alpha_tmp * TP6_inv[i2 + 1]) +
@@ -328,12 +352,14 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
     TP6_inv[13] = 0.0;
     TP6_inv[14] = 0.0;
     TP6_inv[15] = 1.0;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
       fir_res = T_0_6[i];
       Tx_alpha_tmp = T_0_6[i + 4];
       scale = T_0_6[i + 8];
       t = T_0_6[i + 12];
-      for (i1 = 0; i1 < 4; i1++) {
+      for (i1 = 0; i1 < 4; i1++)
+      {
         i2 = i1 << 2;
         forwardMat[i + i2] =
             ((fir_res * TP6_inv[i2] + Tx_alpha_tmp * TP6_inv[i2 + 1]) +
@@ -357,12 +383,14 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
     TP6_inv[11] = 0.0;
     TP6_inv[14] = 0.0;
     TP6_inv[15] = 1.0;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
       fir_res = forwardMat[i];
       Tx_alpha_tmp = forwardMat[i + 4];
       scale = forwardMat[i + 8];
       t = forwardMat[i + 12];
-      for (i1 = 0; i1 < 4; i1++) {
+      for (i1 = 0; i1 < 4; i1++)
+      {
         i2 = i1 << 2;
         T_0_6[i + i2] =
             ((fir_res * TP6_inv[i2] + Tx_alpha_tmp * TP6_inv[i2 + 1]) +
@@ -386,12 +414,14 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
     TP6_inv[12] = 0.0;
     TP6_inv[13] = 0.0;
     TP6_inv[15] = 1.0;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
       fir_res = T_0_6[i];
       Tx_alpha_tmp = T_0_6[i + 4];
       scale = T_0_6[i + 8];
       t = T_0_6[i + 12];
-      for (i1 = 0; i1 < 4; i1++) {
+      for (i1 = 0; i1 < 4; i1++)
+      {
         i2 = i1 << 2;
         forwardMat[i + i2] =
             ((fir_res * TP6_inv[i2] + Tx_alpha_tmp * TP6_inv[i2 + 1]) +
@@ -402,22 +432,26 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
   }
   /*     %% 解臂型角的思路，将7Dof带ofset的构型，重新逆解回不带ofset的构型 */
   /* 末端相当于沿着6系x方向前移了71，6系x方向是朝里的 */
-  for (i = 0; i < 16; i++) {
+  for (i = 0; i < 16; i++)
+  {
     TP6_inv[i] = iv[i];
   }
-  for (i = 0; i < 3; i++) {
+  for (i = 0; i < 3; i++)
+  {
     TP6_inv_tmp = i << 2;
     TP6_inv[TP6_inv_tmp] = b_iv[3 * i];
     TP6_inv[TP6_inv_tmp + 1] = b_iv[3 * i + 1];
     TP6_inv[TP6_inv_tmp + 2] = b_iv[3 * i + 2];
     TP6_inv[i + 12] = b_iv1[i];
   }
-  for (i = 0; i < 4; i++) {
+  for (i = 0; i < 4; i++)
+  {
     fir_res = forwardMat[i];
     Tx_alpha_tmp = forwardMat[i + 4];
     scale = forwardMat[i + 8];
     t = forwardMat[i + 12];
-    for (i1 = 0; i1 < 4; i1++) {
+    for (i1 = 0; i1 < 4; i1++)
+    {
       i2 = i1 << 2;
       T_0_6[i + i2] =
           ((fir_res * TP6_inv[i2] + Tx_alpha_tmp * TP6_inv[i2 + 1]) +
@@ -428,46 +462,60 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
   /* P系(基于臂型角后撤的坐标系)转化为原始的W系 */
   scale = 3.3121686421112381E-170;
   absxk = fabs(T_0_6[12]);
-  if (absxk > 3.3121686421112381E-170) {
+  if (absxk > 3.3121686421112381E-170)
+  {
     y_beta = 1.0;
     scale = absxk;
-  } else {
+  }
+  else
+  {
     t = absxk / 3.3121686421112381E-170;
     y_beta = t * t;
   }
   absxk = fabs(T_0_6[13]);
-  if (absxk > scale) {
+  if (absxk > scale)
+  {
     t = scale / absxk;
     y_beta = y_beta * t * t + 1.0;
     scale = absxk;
-  } else {
+  }
+  else
+  {
     t = absxk / scale;
     y_beta += t * t;
   }
   absxk = fabs(T_0_6[14]);
-  if (absxk > scale) {
+  if (absxk > scale)
+  {
     t = scale / absxk;
     y_beta = y_beta * t * t + 1.0;
     scale = absxk;
-  } else {
+  }
+  else
+  {
     t = absxk / scale;
     y_beta += t * t;
   }
   y_beta = scale * sqrt(y_beta);
-  if (602.9925372672534 - y_beta > 1.0E-6) {
+  if (602.9925372672534 - y_beta > 1.0E-6)
+  {
     theta3 =
         -((4.8120576328758515 - acos((181800.0 - y_beta * y_beta) / 181800.0)) -
           1.4711276743037347);
-  } else {
+  }
+  else
+  {
     theta3 = theta[3];
     /* 注意，这里就要考虑正反对应了.加起来正好等于7 */
     /*  这边是6Dof逆解时肘部奇异 */
   }
   /* 以上求得 theta3 */
-  for (i = 0; i < 16; i++) {
+  for (i = 0; i < 16; i++)
+  {
     TP6_inv[i] = iv[i];
   }
-  for (i = 0; i < 3; i++) {
+  for (i = 0; i < 3; i++)
+  {
     fir_res = T_0_6[i];
     R63[3 * i] = fir_res;
     TP6_inv_tmp = i << 2;
@@ -479,22 +527,26 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
     R63[3 * i + 2] = fir_res;
     TP6_inv[TP6_inv_tmp + 2] = fir_res;
   }
-  for (i = 0; i < 9; i++) {
+  for (i = 0; i < 9; i++)
+  {
     R63[i] = -R63[i];
   }
   fir_res = T_0_6[12];
   Tx_alpha_tmp = T_0_6[13];
   scale = T_0_6[14];
-  for (i = 0; i < 3; i++) {
+  for (i = 0; i < 3; i++)
+  {
     TP6_inv[i + 12] =
         (R63[i] * fir_res + R63[i + 3] * Tx_alpha_tmp) + R63[i + 6] * scale;
   }
-  for (i = 0; i < 4; i++) {
+  for (i = 0; i < 4; i++)
+  {
     fir_res = TP6_inv[i];
     Tx_alpha_tmp = TP6_inv[i + 4];
     scale = TP6_inv[i + 8];
     t = TP6_inv[i + 12];
-    for (i1 = 0; i1 < 4; i1++) {
+    for (i1 = 0; i1 < 4; i1++)
+    {
       i2 = i1 << 2;
       forwardMat[i + i2] =
           ((fir_res * (double)iv1[i2] + Tx_alpha_tmp * (double)iv1[i2 + 1]) +
@@ -506,11 +558,14 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
   p_idx_1 = cos(theta3);
   y_beta = forwardMat[14] / ((30.0 * p_idx_1 - 30.0) + 300.0 * absxk);
   fir_res = fabs(y_beta);
-  if ((fir_res >= -1.0) && (fir_res <= 1.0)) {
+  if ((fir_res >= -1.0) && (fir_res <= 1.0))
+  {
     theta2 = asin(y_beta);
     /* 这里有2组解 */
     /*  theta2 = -pi-theta2; */
-  } else {
+  }
+  else
+  {
     /*  这边是6Dof逆解z方向上的肘部奇异 */
     theta2 = theta[4];
     /*  error('with singularity, no solution'); */
@@ -555,12 +610,14 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
   T_0_6[15] = 1.0;
   TP6_inv[13] = 300.0;
   TP6_inv[15] = 1.0;
-  for (i = 0; i < 4; i++) {
+  for (i = 0; i < 4; i++)
+  {
     fir_res = T_0_6[i];
     Tx_alpha_tmp = T_0_6[i + 4];
     scale = T_0_6[i + 8];
     t = T_0_6[i + 12];
-    for (i1 = 0; i1 < 4; i1++) {
+    for (i1 = 0; i1 < 4; i1++)
+    {
       i2 = i1 << 2;
       T01_tmp[i + i2] =
           ((fir_res * TP6_inv[i2] + Tx_alpha_tmp * TP6_inv[i2 + 1]) +
@@ -576,7 +633,8 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
   TP6_inv[6] = p_idx_1;
   TP6_inv[10] = 0.0;
   TP6_inv[14] = 0.0;
-  for (i = 0; i < 4; i++) {
+  for (i = 0; i < 4; i++)
+  {
     TP6_inv_tmp = i << 2;
     i1 = iv4[i];
     TP6_inv[TP6_inv_tmp + 1] = i1;
@@ -584,7 +642,8 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
     TP6_inv[TP6_inv_tmp + 3] = i2;
     fir_res = TP6_inv[TP6_inv_tmp];
     Tx_alpha_tmp = TP6_inv[TP6_inv_tmp + 2];
-    for (TP6_inv_tmp = 0; TP6_inv_tmp < 4; TP6_inv_tmp++) {
+    for (TP6_inv_tmp = 0; TP6_inv_tmp < 4; TP6_inv_tmp++)
+    {
       T_0_6[i + (TP6_inv_tmp << 2)] =
           ((T01_tmp[TP6_inv_tmp] * fir_res +
             T01_tmp[TP6_inv_tmp + 4] * (double)i1) +
@@ -592,11 +651,13 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
           T01_tmp[TP6_inv_tmp + 12] * (double)i2;
     }
   }
-  for (i = 0; i < 3; i++) {
+  for (i = 0; i < 3; i++)
+  {
     fir_res = T_0_6[i];
     Tx_alpha_tmp = T_0_6[i + 4];
     scale = T_0_6[i + 8];
-    for (i1 = 0; i1 < 3; i1++) {
+    for (i1 = 0; i1 < 3; i1++)
+    {
       i2 = i1 << 2;
       R63[i + 3 * i1] =
           (fir_res * forwardMat[i2] + Tx_alpha_tmp * forwardMat[i2 + 1]) +
@@ -605,11 +666,14 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
   }
   /* 以上求得 theta5 */
   scale = acos(-R63[7]);
-  if (fabs(scale - 3.1415926535897931) < 1.0E-6) {
+  if (fabs(scale - 3.1415926535897931) < 1.0E-6)
+  {
     absxk = theta[2];
     /* 注意，这里就要考虑正反对应了.加起来正好等于7 */
     y_beta = rt_atan2d_snf(-R63[3], -R63[5]) - theta[2];
-  } else {
+  }
+  else
+  {
     y_beta = sin(scale - 3.1415926535897931);
     absxk = rt_atan2d_snf(R63[8] / y_beta, R63[6] / y_beta);
     y_beta = rt_atan2d_snf(-R63[4] / y_beta, R63[1] / y_beta);
@@ -625,11 +689,13 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
   theta[1] = scale - 3.1415926535897931;
   theta[2] = absxk - 3.1415926535897931;
   theta[3] = theta3;
-  for (i = 0; i < 16; i++) {
+  for (i = 0; i < 16; i++)
+  {
     forwardMat[i] = forwardMat_tmp[i];
   }
   memset(&R63[0], 0, 9U * sizeof(double));
-  for (b_i = 0; b_i < 6; b_i++) {
+  for (b_i = 0; b_i < 6; b_i++)
+  {
     fir_res = alpha_arr_woOfst[b_i];
     Tx_alpha_tmp = sin(fir_res);
     scale = cos(fir_res);
@@ -652,12 +718,14 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
     TP6_inv[11] = 0.0;
     TP6_inv[12] = 0.0;
     TP6_inv[15] = 1.0;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
       fir_res = forwardMat[i];
       Tx_alpha_tmp = forwardMat[i + 4];
       scale = forwardMat[i + 8];
       t = forwardMat[i + 12];
-      for (i1 = 0; i1 < 4; i1++) {
+      for (i1 = 0; i1 < 4; i1++)
+      {
         i2 = i1 << 2;
         T_0_6[i + i2] =
             ((fir_res * TP6_inv[i2] + Tx_alpha_tmp * TP6_inv[i2 + 1]) +
@@ -681,12 +749,14 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
     TP6_inv[13] = 0.0;
     TP6_inv[14] = 0.0;
     TP6_inv[15] = 1.0;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
       fir_res = T_0_6[i];
       Tx_alpha_tmp = T_0_6[i + 4];
       scale = T_0_6[i + 8];
       t = T_0_6[i + 12];
-      for (i1 = 0; i1 < 4; i1++) {
+      for (i1 = 0; i1 < 4; i1++)
+      {
         i2 = i1 << 2;
         forwardMat[i + i2] =
             ((fir_res * TP6_inv[i2] + Tx_alpha_tmp * TP6_inv[i2 + 1]) +
@@ -710,12 +780,14 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
     TP6_inv[11] = 0.0;
     TP6_inv[14] = 0.0;
     TP6_inv[15] = 1.0;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
       fir_res = forwardMat[i];
       Tx_alpha_tmp = forwardMat[i + 4];
       scale = forwardMat[i + 8];
       t = forwardMat[i + 12];
-      for (i1 = 0; i1 < 4; i1++) {
+      for (i1 = 0; i1 < 4; i1++)
+      {
         i2 = i1 << 2;
         T_0_6[i + i2] =
             ((fir_res * TP6_inv[i2] + Tx_alpha_tmp * TP6_inv[i2 + 1]) +
@@ -739,12 +811,14 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
     TP6_inv[12] = 0.0;
     TP6_inv[13] = 0.0;
     TP6_inv[15] = 1.0;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
       fir_res = T_0_6[i];
       Tx_alpha_tmp = T_0_6[i + 4];
       scale = T_0_6[i + 8];
       t = T_0_6[i + 12];
-      for (i1 = 0; i1 < 4; i1++) {
+      for (i1 = 0; i1 < 4; i1++)
+      {
         i2 = i1 << 2;
         forwardMat[i + i2] =
             ((fir_res * TP6_inv[i2] + Tx_alpha_tmp * TP6_inv[i2 + 1]) +
@@ -752,8 +826,10 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
             t * TP6_inv[i2 + 3];
       }
     }
-    if (b_i + 1 == 4) {
-      for (i = 0; i < 3; i++) {
+    if (b_i + 1 == 4)
+    {
+      for (i = 0; i < 3; i++)
+      {
         TP6_inv_tmp = i << 2;
         R63[3 * i] = forwardMat[TP6_inv_tmp];
         R63[3 * i + 1] = forwardMat[TP6_inv_tmp + 1];
@@ -772,20 +848,26 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
   t = carte_idx_0 / 3.3121686421112381E-170;
   y_beta = t * t;
   absxk = fabs(carte_idx_1);
-  if (absxk > 3.3121686421112381E-170) {
+  if (absxk > 3.3121686421112381E-170)
+  {
     t = 3.3121686421112381E-170 / absxk;
     y_beta = y_beta * t * t + 1.0;
     scale = absxk;
-  } else {
+  }
+  else
+  {
     t = absxk / 3.3121686421112381E-170;
     y_beta += t * t;
   }
   absxk = fabs(carte_idx_2);
-  if (absxk > scale) {
+  if (absxk > scale)
+  {
     t = scale / absxk;
     y_beta = y_beta * t * t + 1.0;
     scale = absxk;
-  } else {
+  }
+  else
+  {
     t = absxk / scale;
     y_beta += t * t;
   }
@@ -793,30 +875,39 @@ void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
   scale = 3.3121686421112381E-170;
   carte_idx_0 /= y_beta;
   absxk = fabs(p_idx_0);
-  if (absxk > 3.3121686421112381E-170) {
+  if (absxk > 3.3121686421112381E-170)
+  {
     Tx_alpha_tmp = 1.0;
     scale = absxk;
-  } else {
+  }
+  else
+  {
     t = absxk / 3.3121686421112381E-170;
     Tx_alpha_tmp = t * t;
   }
   carte_idx_1 /= y_beta;
   absxk = fabs(p_idx_1);
-  if (absxk > scale) {
+  if (absxk > scale)
+  {
     t = scale / absxk;
     Tx_alpha_tmp = Tx_alpha_tmp * t * t + 1.0;
     scale = absxk;
-  } else {
+  }
+  else
+  {
     t = absxk / scale;
     Tx_alpha_tmp += t * t;
   }
   carte_idx_2 /= y_beta;
   absxk = fabs(theta3);
-  if (absxk > scale) {
+  if (absxk > scale)
+  {
     t = scale / absxk;
     Tx_alpha_tmp = Tx_alpha_tmp * t * t + 1.0;
     scale = absxk;
-  } else {
+  }
+  else
+  {
     t = absxk / scale;
     Tx_alpha_tmp += t * t;
   }

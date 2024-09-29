@@ -4,8 +4,8 @@ RJHSystem::RJHSystem()
 {
     motion = std::make_unique<Motion>(driver_name);
     running = true;
-    robot_data = new RobotData();
-    udp_subscriber = new UdpSubscriber(robot_data);
+    parameter_server = ParameterServer::getInstance();
+    udp_subscriber = new UdpSubscriber();
     udp_subscriber->recv_data(subscriber_rate);
     joints_publisher = std::make_unique<UdpPublisher>(address, 8012);
     status_publisher = std::make_unique<UdpPublisher>(address, 8011);
@@ -15,8 +15,7 @@ RJHSystem::RJHSystem()
 
 RJHSystem::~RJHSystem()
 {
-    delete robot_data;
-
+    delete udp_subscriber;
     stop();
 }
 
@@ -25,48 +24,53 @@ void RJHSystem::start()
     joints_publish_thread = std::thread(&RJHSystem::robot_info_publish, this, info_publish_rate);
     state_publish_thread = std::thread(&RJHSystem::robot_state_publish, this, state_publish_rate);
     recvRobotCmd_thread = std::thread(&RJHSystem::recvRobotCmd, this);
-    // system_state_update_thread = std::thread(&RJHSystem::system_state_upda5te, this);
+    RobotData::JointCmd _joint_cmd;
+    RobotData::RobotCmd _robot_cmd;
     while (running)
     {
-        std::unique_lock<std::mutex> lock(robot_data_mutex);
-        switch (robot_data->robot_info_.robot_cmd_.motion_mode)
+        parameter_server->getRobotInfo(_robot_cmd);
+        parameter_server->getRobotInfo(_joint_cmd);
+        // std::unique_lock<std::mutex> lock(robot_data_mutex);
+        switch (_robot_cmd.motion_mode)
         {
         case SystemState::IDLE:
             idle();
             break;
         case SystemState::MANUAL:
-            manual();
+            manual(_robot_cmd, _joint_cmd);
+            break;
+        case SystemState::MOVEL:
+            movel(_robot_cmd, _joint_cmd);
             break;
         case SystemState::MOTION_CAPTURE:
-            motion_capture();
+            motion_capture(_robot_cmd, _joint_cmd);
             break;
         default:
             break;
         }
-        lock.unlock();
         usleep(1000);
     }
 }
 
-void RJHSystem::system_state_update()
-{
-}
 void RJHSystem::recvRobotCmd()
 {
     /**
      * @brief 接收状态q
      * 从PC端接收命令更新机器人状态信息。更新motion_mode, enable， filter_enable
      */
+    RobotData::RobotCmd _robot_cmd;
+    RobotData::RobotState _newState;
+    RobotData::JointCmd _joint_cmd;
     while (running)
     {
-        std::unique_lock<std::mutex> lock(robot_data_mutex);
+        parameter_server->getRobotInfo(_robot_cmd);
         // 判断运行状态命令
-        if (robot_data->robot_info_.robot_cmd_.running_mode == 1)
+        if (_robot_cmd.running_mode == 1)
         {
             motion->motionStateSwitch(3);
         }
         // 判断使能命令
-        if (robot_data->robot_info_.robot_cmd_.enable == 1)
+        if (_robot_cmd.enable == 1)
         {
             motion->enableRobot();
         }
@@ -76,16 +80,17 @@ void RJHSystem::recvRobotCmd()
             motion->initFilterJoints();
         };
         // 判断复位命令
-        if (robot_data->robot_info_.robot_cmd_.reset_error == 1)
+        if (_robot_cmd.reset_error == 1)
         {
             motion->resetMotionError();
-            robot_data->robot_info_.robot_state_.reset_feedback == 1;
+            _newState.reset_feedback == 1;
+            parameter_server->setRobotInfo(_newState);
         }
         else
         {
-            robot_data->robot_info_.robot_state_.reset_feedback == 0;
+            _newState.reset_feedback == 1;
+            parameter_server->setRobotInfo(_newState);
         };
-        lock.unlock();
         usleep(1000);
     }
 }
@@ -107,80 +112,18 @@ void RJHSystem::stop()
     }
 }
 
-void RJHSystem::_update_joints()
-{
-    std::lock_guard<std::mutex> lock(robot_data_mutex);
-    // TODO 更新机器人位姿
-    motion->getCurrentJoints(robot_data->robot_info_);
-}
-
-void RJHSystem::_update_robot_state()
-{
-    std::lock_guard<std::mutex> lock(robot_data_mutex);
-    robot_data->robot_info_.robot_state_.motion_mode = static_cast<int>(system_state);
-    robot_data->robot_info_.robot_state_.error = 0;
-    robot_data->robot_info_.robot_state_.running_mode = motion->getMotionState();
-}
-
-void RJHSystem::idle()
-{
-    system_state = SystemState::IDLE;
-    motion->motionStateSwitch(1);
-}
-
-void RJHSystem::motion_capture()
-{
-    if (system_state == SystemState::IDLE)
-    {
-        system_state = SystemState::MOTION_CAPTURE;
-        std::cout << "system state chang modle motion_capture :" << std::endl;
-    }
-    else if (system_state == SystemState::MOTION_CAPTURE)
-    {
-        if (system_state == SystemState::MOTION_CAPTURE && robot_data->robot_info_.robot_cmd_.running_mode == 2)
-        {
-            motion->motionStateSwitch(4);
-        }
-        // motion->motionStateSwitch(robot_data->robot_info_.robot_cmd_.running_mode);
-        motion->robotMoveCartesion(robot_data->robot_info_);
-    }
-    else
-    {
-        std::cout << "Cannot MOTION_CAPTURE. Current state: " << static_cast<int>(system_state) << std::endl;
-    }
-}
-
-void RJHSystem::manual()
-{
-    if (system_state == SystemState::IDLE)
-    {
-        system_state = SystemState::MANUAL;
-        std::cout << "system state chang modle manual :" << std::endl;
-    }
-    else if (system_state == SystemState::MANUAL)
-    {
-        if (system_state == SystemState::MANUAL && robot_data->robot_info_.robot_cmd_.running_mode == 2)
-        {
-            motion->motionStateSwitch(4);
-        }
-        motion->robotMoveJoint(robot_data->robot_info_);
-    }
-    else
-    {
-        std::cout << "Cannot MANUAL. Current state: " << static_cast<int>(system_state) << std::endl;
-    }
-}
-
 void RJHSystem::robot_info_publish(int rate)
 {
     try
     {
+        RobotData::RobotPublishInfo publish_info;
         std::cout << "running robot_info_publish" << std::endl;
         while (running)
         {
-            _update_joints();
+            motion->getCurrentPosAndJoints(publish_info);
+            parameter_server->setRobotInfo(publish_info);
             ssize_t sent_bytes_test = sendto(joints_publisher->socket_fd_,
-                                             &robot_data->robot_info_.robot_send_info_, sizeof(RobotData::RobotPublishInfo), 0,
+                                             &publish_info, sizeof(RobotData::RobotPublishInfo), 0,
                                              (struct sockaddr *)&joints_publisher->server_addr_, joints_publisher->len);
             if (sent_bytes_test < 0)
             {
@@ -199,11 +142,14 @@ void RJHSystem::robot_info_publish(int rate)
 void RJHSystem::robot_state_publish(int rate)
 {
     std::cout << "running robot status publish" << std::endl;
+    RobotData::RobotState robot_state_;
     while (running)
     {
-        _update_robot_state();
+        robot_state_.motion_mode = static_cast<int>(system_state);
+        robot_state_.error = 0;
+        robot_state_.running_mode = motion->getMotionState();
         ssize_t sent_bytes_test = sendto(status_publisher->socket_fd_,
-                                         &robot_data->robot_info_.robot_state_, sizeof(RobotData::RobotState), 0,
+                                         &robot_state_, sizeof(RobotData::RobotState), 0,
                                          (struct sockaddr *)&status_publisher->server_addr_, status_publisher->len);
         if (sent_bytes_test < 0)
         {
@@ -212,6 +158,81 @@ void RJHSystem::robot_state_publish(int rate)
         std::this_thread::sleep_for(std::chrono::milliseconds(rate));
     }
     std::cout << "[UdpPublish]: stop running robot status publish" << std::endl;
+}
+
+void RJHSystem::idle()
+{
+    system_state = SystemState::IDLE;
+    motion->motionStateSwitch(1);
+}
+
+void RJHSystem::manual(RobotData::RobotCmd _robot_cmd, RobotData::JointCmd _joint_cmd)
+{
+    parameter_server->getRobotInfo(_robot_cmd);
+    if (system_state == SystemState::IDLE)
+    {
+        system_state = SystemState::MANUAL;
+        std::cout << "system state chang modle manual :" << std::endl;
+    }
+    else if (system_state == SystemState::MANUAL)
+    {
+        if (system_state == SystemState::MANUAL && _robot_cmd.running_mode == 2)
+        {
+            motion->motionStateSwitch(4);
+        }
+        motion->robotMoveJoint(_joint_cmd);
+    }
+    else
+    {
+        std::cout << "Cannot MANUAL. Current state: " << static_cast<int>(system_state) << std::endl;
+    }
+}
+
+void RJHSystem::movel(RobotData::RobotCmd _robot_cmd, RobotData::JointCmd _joint_cmd)
+{
+    if (system_state == SystemState::IDLE)
+    {
+        system_state = SystemState::MANUAL;
+        std::cout << "system state chang modle movel :" << std::endl;
+    }
+    else if (system_state == SystemState::MANUAL)
+    {
+        if (system_state == SystemState::MANUAL && _robot_cmd.running_mode == 2)
+        {
+            motion->motionStateSwitch(4);
+        }
+        motion->robotMoveCartesion(_joint_cmd);
+    }
+    else
+    {
+        std::cout << "Cannot MOTION_CAPTURE. Current state: " << static_cast<int>(system_state) << std::endl;
+    }
+}
+
+void RJHSystem::motion_capture(RobotData::RobotCmd _robot_cmd, RobotData::JointCmd _joint_cmd)
+{
+    if (system_state == SystemState::IDLE)
+    {
+        system_state = SystemState::MOTION_CAPTURE;
+        std::cout << "system state chang modle motion_capture :" << std::endl;
+    }
+    else if (system_state == SystemState::MOTION_CAPTURE)
+    {
+        if (system_state == SystemState::MOTION_CAPTURE && _robot_cmd.running_mode == 2)
+        {
+            motion->motionStateSwitch(4);
+        }
+        motion->robotMoveCartesion(_joint_cmd);
+    }
+    else
+    {
+        std::cout << "Cannot MOTION_CAPTURE. Current state: " << static_cast<int>(system_state) << std::endl;
+    }
+}
+
+void RJHSystem::loadConfig()
+{
+    motion->loadMotionConfig();
 }
 
 int main(int argc, char *argv[])
