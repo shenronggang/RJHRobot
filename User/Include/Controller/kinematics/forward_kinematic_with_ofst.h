@@ -14,16 +14,17 @@
 #include <stdlib.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-/* Function Declarations */
-extern void forward_kinematic_with_ofst(double theta[7], const double a_arr[7],
-                                        const double alpha_arr[7],
-                                        const double d_arr[7],
-                                        const double theta_arr[7],
-                                        double carte[3], double eulVal[3],
-                                        double *bet, int *LOrR, int *FOrB);
+    /* Function Declarations */
+    extern void forward_kinematic_with_ofst(double theta[7], double a_arr[7],
+                                            double alpha_arr[7],
+                                            double d_arr[7],
+                                            double theta_arr[7],
+                                            double carte[3], double eulVal[3],
+                                            double *bet, int *LOrR, int *FOrB);
 
 #ifdef __cplusplus
 }

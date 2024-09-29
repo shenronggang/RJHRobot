@@ -131,16 +131,16 @@ int BlackRobot::enable_robot() const
     std::lock_guard<std::mutex> lock(ec_mtx);
     int result = 0, res;
     res = group_power_on(robot_names.head);
-    if (res != 0)
+    if (res < 0)
         result |= (1 << 0);
     res = group_power_on(robot_names.waist);
-    if (res != 0)
+    if (res < 0)
         result |= (1 << 1);
     res = group_power_on(robot_names.left_arm);
-    if (res != 0)
+    if (res < 0)
         result |= (1 << 2);
     res = group_power_on(robot_names.right_arm);
-    if (res != 0)
+    if (res < 0)
         result |= (1 << 3);
     return result;
 }
@@ -156,16 +156,16 @@ int BlackRobot::disable_robot() const
     std::lock_guard<std::mutex> lock(ec_mtx);
     int result = 0, res;
     res = group_power_off(robot_names.head);
-    if (res != 0)
+    if (res < 0)
         result |= (1 << 0);
     res = group_power_off(robot_names.waist);
-    if (res != 0)
+    if (res < 0)
         result |= (1 << 1);
     res = group_power_off(robot_names.left_arm);
-    if (res != 0)
+    if (res < 0)
         result |= (1 << 2);
     res = group_power_off(robot_names.right_arm);
-    if (res != 0)
+    if (res < 0)
         result |= (1 << 3);
     return result;
 }
@@ -200,17 +200,17 @@ int BlackRobot::set_robot_joints(RobotJoints &robot_joints) const
     {
         right_arm[i] = static_cast<double>(degToRad(robot_joints.right_arm[i]));
     }
-    // int res_head = SetGroupPosition(robot_names.head, head);
+    int res_head = SetGroupPosition(robot_names.head, head);
     int res_waist = SetGroupPosition(robot_names.waist, waist);
     int res_left_arm = SetGroupPosition(robot_names.left_arm, left_arm);
     int res_right_arm = SetGroupPosition(robot_names.right_arm, right_arm);
-    // if (res_head != 0)
-    //     res |= (1 << 0);
-    if (res_waist != 0)
+    if (res_head < 0)
+        res |= (1 << 0);
+    if (res_waist < 0)
         res |= (1 << 1);
-    if (res_left_arm != 0)
+    if (res_left_arm < 0)
         res |= (1 << 2);
-    if (res_right_arm != 0)
+    if (res_right_arm < 0)
         res |= (1 << 3);
     return res;
 }

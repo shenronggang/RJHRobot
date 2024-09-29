@@ -21,7 +21,7 @@ UdpPublisher::UdpPublisher(const std::string &address, unsigned short port)
     std::cout << "[UDPPublish]: creat success!!! address: " << address_ << " port: " << port_ << std::endl;
 }
 
-UdpSubscriber::UdpSubscriber(RobotData *robot_data) : robot_data_(robot_data)
+UdpSubscriber::UdpSubscriber()
 {
     for (int i = 0; i < PORT_NUM; i++)
     {
@@ -74,26 +74,30 @@ void UdpSubscriber::udpclose()
 int UdpSubscriber::rcv_calback(void *package, uint16_t port)
 {
     char *buf = (char *)package;
+    
     // bool data_error = false;
     switch (port)
     {
     case PORT_JOINTS:
-        if (robot_data_->robot_info_.robot_cmd_.motion_mode == 2)
+        if (robot_cmd_.motion_mode == 2)
         {
-            memcpy(&robot_data_->robot_info_.joint_cmd_, buf, sizeof(RobotData::JointCmd));
+            memcpy(&joint_cmd_, buf, sizeof(RobotData::JointCmd));
             break;
         }
     case PORT_CARTESION:
-        if (robot_data_->robot_info_.robot_cmd_.motion_mode == 5)
+        if (robot_cmd_.motion_mode == 5)
         {
-            memcpy(&robot_data_->robot_info_.joint_cmd_, buf, sizeof(RobotData::JointCmd));
+            memcpy(&joint_cmd_, buf, sizeof(RobotData::JointCmd));
             break;
         }
     case PORT_ROBOT_CMD:
-        memcpy(&robot_data_->robot_info_.robot_cmd_, buf, sizeof(RobotData::RobotCmd));
+        memcpy(&robot_cmd_, buf, sizeof(RobotData::RobotCmd));
         break;
     default:
         break;
     }
+    parameter_server->setRobotInfo(robot_cmd_);
+    parameter_server->setRobotInfo(joint_cmd_);
+
     return 0;
 }

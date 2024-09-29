@@ -15,12 +15,12 @@
 
 /* Function Definitions */
 void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
-                  double p_y, double p_z, double bet, const double cur_theta[7],
-                  int lt_or_rt, int LOrR, int FOrB, double jntLim[14],
-                  double theta[7], int *ik_state)
+                  double p_y, double p_z, double bet, double cur_theta[7],
+                  int lt_or_rt, int LOrR, int FOrB,
+                  double jntLim[14], double theta[7], int *ik_state)
 {
   static const short b[3] = {300, 0, 0};
-  static const signed char b_b[16] = {1, 0, 0, 0, 0,  1, 0, 0,
+  static const signed char b_b[16] = {1, 0, 0, 0, 0, 1, 0, 0,
                                       0, 0, 1, 0, 71, 0, 0, 1};
   static const signed char b_iv[4] = {0, 0, 1, 0};
   static const signed char b_iv1[4] = {0, 0, 0, 1};
@@ -50,23 +50,28 @@ void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
   double theta2;
   double theta4;
   double theta4_tmp;
-  int b_i;
+  int T12_tmp_tmp;
   int i;
   int i1;
-  int initVal;
+  int i2;
+  short lowLim[7];
+  short upLim[7];
   boolean_T guard1;
-  if (!isInitialized_forward_kinematic_with_ofst) {
+  if (!isInitialized_forward_kinematic_with_ofst)
+  {
     forward_kinematic_with_ofst_initialize();
   }
   /*  global mid_theta */
   /* ------------以下求解辅助臂----------------------------- */
   *ik_state = 0;
-  /*  0-normal, 2001-2007 lower limit (left arm), 2008~2014 upper limit (left
-   * arm) */
+  /*  0-normal,  */
+  /*  2000-left arm joint 1 lower limit; 2001-left arm joint 1 upper limit;
+   * 2100-right arm joint 1 lower limit; 2101-right arm joint 1 upper limit */
+  /*  2060-left arm joint 7 lower limit; 2061-left arm joint 7 upper limit;
+   * 2160-right arm joint 7 lower limit; 2161-right arm joint 7 upper limit */
   /*  25-elbow singularity 26-shoulder singularity  27-wrist singularity
    * 28-rotation singularity */
   /*  29-elbow singularity in z-axis */
-  /*  2015-2021 lower limit (right arm), 2022~2028 upper limit (right arm) */
   /*  外旋ZYX旋转 */
   theta4 = cos(y_beta);
   sB = sin(z_alpha);
@@ -96,34 +101,44 @@ void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
   /* 记得把这里的坐标反一下 */
   scale = 3.3121686421112381E-170;
   absxk = fabs(-p_x);
-  if (absxk > 3.3121686421112381E-170) {
+  if (absxk > 3.3121686421112381E-170)
+  {
     sB = 1.0;
     scale = absxk;
-  } else {
+  }
+  else
+  {
     t = absxk / 3.3121686421112381E-170;
     sB = t * t;
   }
   absxk = fabs(-p_y);
-  if (absxk > scale) {
+  if (absxk > scale)
+  {
     t = scale / absxk;
     sB = sB * t * t + 1.0;
     scale = absxk;
-  } else {
+  }
+  else
+  {
     t = absxk / scale;
     sB += t * t;
   }
   absxk = fabs(p_z);
-  if (absxk > scale) {
+  if (absxk > scale)
+  {
     t = scale / absxk;
     sB = sB * t * t + 1.0;
     scale = absxk;
-  } else {
+  }
+  else
+  {
     t = absxk / scale;
     sB += t * t;
   }
   sB = scale * sqrt(sB);
   guard1 = false;
-  if (602.9925372672534 - sB > 1.0E-6) {
+  if (602.9925372672534 - sB > 1.0E-6)
+  {
     /*  两边之和大于第三边，表示还没有伸直 */
     theta4_tmp = sB * sB;
     /* 明明我看着正角度是对的，怎么就变成了负角度 */
@@ -144,20 +159,26 @@ void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
     t = n_idx_0 / 3.3121686421112381E-170;
     theta4 = t * t;
     absxk = fabs(n_idx_1);
-    if (absxk > 3.3121686421112381E-170) {
+    if (absxk > 3.3121686421112381E-170)
+    {
       t = 3.3121686421112381E-170 / absxk;
       theta4 = theta4 * t * t + 1.0;
       scale = absxk;
-    } else {
+    }
+    else
+    {
       t = absxk / 3.3121686421112381E-170;
       theta4 += t * t;
     }
     absxk = fabs(n_idx_2);
-    if (absxk > scale) {
+    if (absxk > scale)
+    {
       t = scale / absxk;
       theta4 = theta4 * t * t + 1.0;
       scale = absxk;
-    } else {
+    }
+    else
+    {
       t = absxk / scale;
       theta4 += t * t;
     }
@@ -188,7 +209,8 @@ void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
     R47[2] = theta4 - cB;
     R47[5] = absxk + t;
     R47[8] = p_e_idx_2 * p_e_idx_2 * (1.0 - scale) + scale;
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < 3; i++)
+    {
       n4[i] = (R47[i] * n_idx_0 + R47[i + 3] * n_idx_1) + R47[i + 6] * n_idx_2;
     }
     /* Xk */
@@ -199,28 +221,37 @@ void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
     /* 得到k轴方向的y在0中的描述 */
     scale = 3.3121686421112381E-170;
     absxk = fabs(n_idx_0);
-    if (absxk > 3.3121686421112381E-170) {
+    if (absxk > 3.3121686421112381E-170)
+    {
       theta4 = 1.0;
       scale = absxk;
-    } else {
+    }
+    else
+    {
       t = absxk / 3.3121686421112381E-170;
       theta4 = t * t;
     }
     absxk = fabs(n_idx_1);
-    if (absxk > scale) {
+    if (absxk > scale)
+    {
       t = scale / absxk;
       theta4 = theta4 * t * t + 1.0;
       scale = absxk;
-    } else {
+    }
+    else
+    {
       t = absxk / scale;
       theta4 += t * t;
     }
     absxk = fabs(n_idx_2);
-    if (absxk > scale) {
+    if (absxk > scale)
+    {
       t = scale / absxk;
       theta4 = theta4 * t * t + 1.0;
       scale = absxk;
-    } else {
+    }
+    else
+    {
       t = absxk / scale;
       theta4 += t * t;
     }
@@ -248,15 +279,17 @@ void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
     R47[5] = n_idx_2 / theta4;
     R47[8] = n4[2];
     b_cB[8] = 1.0;
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < 3; i++)
+    {
       p_e_idx_2 = 0.0;
       cB = R47[i];
       sB = R47[i + 3];
       a = R47[i + 6];
-      for (b_i = 0; b_i < 3; b_i++) {
-        p_e_idx_2 += ((cB * b_cB[3 * b_i] + sB * b_cB[3 * b_i + 1]) +
-                      a * b_cB[3 * b_i + 2]) *
-                     (double)b[b_i];
+      for (i1 = 0; i1 < 3; i1++)
+      {
+        p_e_idx_2 += ((cB * b_cB[3 * i1] + sB * b_cB[3 * i1 + 1]) +
+                      a * b_cB[3 * i1 + 2]) *
+                     (double)b[i1];
       }
       n4[i] = p_e_idx_2;
     }
@@ -267,9 +300,12 @@ void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
     /*  theta2 = -theta2; */
     R_end_tmp = sin(theta2);
     cB = 300.0 * R_end_tmp;
-    if (fabs(cB) > 1.0E-6) {
+    if (fabs(cB) > 1.0E-6)
+    {
       theta1 = rt_atan2d_snf(n4[1] / cB, n4[0] / cB);
-    } else {
+    }
+    else
+    {
       theta1 = cur_theta[0];
       *ik_state = 26;
       /*  代表肩奇异 */
@@ -283,28 +319,37 @@ void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
     n_idx_2 = -p_x * n4[1] - n4[0] * -p_y;
     scale = 3.3121686421112381E-170;
     absxk = fabs(n_idx_0);
-    if (absxk > 3.3121686421112381E-170) {
+    if (absxk > 3.3121686421112381E-170)
+    {
       theta4 = 1.0;
       scale = absxk;
-    } else {
+    }
+    else
+    {
       t = absxk / 3.3121686421112381E-170;
       theta4 = t * t;
     }
     absxk = fabs(n_idx_1);
-    if (absxk > scale) {
+    if (absxk > scale)
+    {
       t = scale / absxk;
       theta4 = theta4 * t * t + 1.0;
       scale = absxk;
-    } else {
+    }
+    else
+    {
       t = absxk / scale;
       theta4 += t * t;
     }
     absxk = fabs(n_idx_2);
-    if (absxk > scale) {
+    if (absxk > scale)
+    {
       t = scale / absxk;
       theta4 = theta4 * t * t + 1.0;
       scale = absxk;
-    } else {
+    }
+    else
+    {
       t = absxk / scale;
       theta4 += t * t;
     }
@@ -312,22 +357,30 @@ void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
     n_idx_0 /= theta4;
     n_idx_1 /= theta4;
     n_idx_2 /= theta4;
-    if (R_end_tmp <= 1.0E-6) {
+    if (R_end_tmp <= 1.0E-6)
+    {
       p_e_idx_0 = rt_atan2d_snf(-n_idx_0, n_idx_1) - theta1;
-    } else if (R_end_tmp > 1.0E-6) {
+    }
+    else if (R_end_tmp > 1.0E-6)
+    {
       scale = cos(theta1);
-      if (fabs(scale) < 1.0E-6) {
+      if (fabs(scale) < 1.0E-6)
+      {
         p_e_idx_0 = rt_atan2d_snf(
             n_idx_2 / R_end_tmp,
             -(n_idx_0 + scale * cos(theta2) * n_idx_2 / R_end_tmp) /
                 sin(theta1));
-      } else {
+      }
+      else
+      {
         p_e_idx_0 = rt_atan2d_snf(
             n_idx_2 / R_end_tmp,
             (n_idx_1 + sin(theta1) * cos(theta2) * n_idx_2 / R_end_tmp) /
                 cos(theta1));
       }
-    } else {
+    }
+    else
+    {
       p_e_idx_0 = rt_atan2d_snf(
           n_idx_2 / R_end_tmp,
           (n_idx_1 + sin(theta1) * cos(theta2) * n_idx_2 / R_end_tmp) /
@@ -336,7 +389,8 @@ void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
     /*  以上求得theta3 */
     p_e_idx_0 += 3.1415926535897931;
     /*  为啥theta3要翻180度？ */
-    if (p_e_idx_0 > 3.1415926535897931) {
+    if (p_e_idx_0 > 3.1415926535897931)
+    {
       p_e_idx_0 -= 6.2831853071795862;
     }
     theta2 = -theta2;
@@ -382,16 +436,18 @@ void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
     T01_tmp[15] = 1.0;
     T12_tmp[13] = 0.0;
     T12_tmp[15] = 1.0;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
       p_e_idx_2 = T01_tmp[i];
       cB = T01_tmp[i + 4];
       sB = T01_tmp[i + 8];
       a = T01_tmp[i + 12];
-      for (b_i = 0; b_i < 4; b_i++) {
-        i1 = b_i << 2;
-        T0P[i + i1] = ((p_e_idx_2 * T12_tmp[i1] + cB * T12_tmp[i1 + 1]) +
-                       sB * T12_tmp[i1 + 2]) +
-                      a * T12_tmp[i1 + 3];
+      for (i1 = 0; i1 < 4; i1++)
+      {
+        i2 = i1 << 2;
+        T0P[i + i2] = ((p_e_idx_2 * T12_tmp[i2] + cB * T12_tmp[i2 + 1]) +
+                       sB * T12_tmp[i2 + 2]) +
+                      a * T12_tmp[i2 + 3];
       }
     }
     T12_tmp[0] = t;
@@ -410,16 +466,18 @@ void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
     T12_tmp[11] = 0.0;
     T12_tmp[13] = -300.0;
     T12_tmp[15] = 1.0;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
       p_e_idx_2 = T0P[i];
       cB = T0P[i + 4];
       sB = T0P[i + 8];
       a = T0P[i + 12];
-      for (b_i = 0; b_i < 4; b_i++) {
-        i1 = b_i << 2;
-        T01_tmp[i + i1] = ((p_e_idx_2 * T12_tmp[i1] + cB * T12_tmp[i1 + 1]) +
-                           sB * T12_tmp[i1 + 2]) +
-                          a * T12_tmp[i1 + 3];
+      for (i1 = 0; i1 < 4; i1++)
+      {
+        i2 = i1 << 2;
+        T01_tmp[i + i2] = ((p_e_idx_2 * T12_tmp[i2] + cB * T12_tmp[i2 + 1]) +
+                           sB * T12_tmp[i2 + 2]) +
+                          a * T12_tmp[i2 + 3];
       }
     }
     T12_tmp[0] = p_e_idx_0;
@@ -431,39 +489,47 @@ void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
     T12_tmp[6] = -p_e_idx_0;
     T12_tmp[10] = 0.0;
     T12_tmp[14] = 0.0;
-    for (i = 0; i < 4; i++) {
-      initVal = i << 2;
-      b_i = b_iv[i];
-      T12_tmp[initVal + 1] = b_i;
-      i1 = b_iv1[i];
-      T12_tmp[initVal + 3] = i1;
-      p_e_idx_2 = T12_tmp[initVal];
-      cB = T12_tmp[initVal + 2];
-      for (initVal = 0; initVal < 4; initVal++) {
-        b_T0P[i + (initVal << 2)] = ((T01_tmp[initVal] * p_e_idx_2 +
-                                      T01_tmp[initVal + 4] * (double)b_i) +
-                                     T01_tmp[initVal + 8] * cB) +
-                                    T01_tmp[initVal + 12] * (double)i1;
+    for (i = 0; i < 4; i++)
+    {
+      T12_tmp_tmp = i << 2;
+      i1 = b_iv[i];
+      T12_tmp[T12_tmp_tmp + 1] = i1;
+      i2 = b_iv1[i];
+      T12_tmp[T12_tmp_tmp + 3] = i2;
+      p_e_idx_2 = T12_tmp[T12_tmp_tmp];
+      cB = T12_tmp[T12_tmp_tmp + 2];
+      for (T12_tmp_tmp = 0; T12_tmp_tmp < 4; T12_tmp_tmp++)
+      {
+        b_T0P[i + (T12_tmp_tmp << 2)] =
+            ((T01_tmp[T12_tmp_tmp] * p_e_idx_2 +
+              T01_tmp[T12_tmp_tmp + 4] * (double)i1) +
+             T01_tmp[T12_tmp_tmp + 8] * cB) +
+            T01_tmp[T12_tmp_tmp + 12] * (double)i2;
       }
     }
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < 3; i++)
+    {
       p_e_idx_2 = b_T0P[i];
       cB = b_T0P[i + 4];
       sB = b_T0P[i + 8];
-      for (b_i = 0; b_i < 3; b_i++) {
-        i1 = b_i << 2;
-        R47[i + 3 * b_i] =
-            (p_e_idx_2 * T07[i1] + cB * T07[i1 + 1]) + sB * T07[i1 + 2];
+      for (i1 = 0; i1 < 3; i1++)
+      {
+        i2 = i1 << 2;
+        R47[i + 3 * i1] =
+            (p_e_idx_2 * T07[i2] + cB * T07[i2 + 1]) + sB * T07[i2 + 2];
       }
     }
     p_e_idx_1 = acos(-R47[7]);
     /* 注意这里有选解问题，左右臂可能吧不同 */
     /*  以上求得theta6 */
-    if (fabs(p_e_idx_1) > 1.0E-6) {
+    if (fabs(p_e_idx_1) > 1.0E-6)
+    {
       cB = sin(p_e_idx_1);
       theta4 = rt_atan2d_snf(R47[8] / cB, R47[6] / cB);
       n_idx_1 = rt_atan2d_snf(-R47[4] / cB, R47[1] / cB);
-    } else {
+    }
+    else
+    {
       theta4 = cur_theta[4];
       /*  真实机器人赋予上一时刻值 */
       n_idx_1 = rt_atan2d_snf(-R47[3], R47[5]) - cur_theta[4];
@@ -505,16 +571,18 @@ void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
     T12_tmp[11] = 0.0;
     T12_tmp[13] = -300.0;
     T12_tmp[15] = 1.0;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
       p_e_idx_2 = T0P[i];
       cB = T0P[i + 4];
       sB = T0P[i + 8];
       a = T0P[i + 12];
-      for (b_i = 0; b_i < 4; b_i++) {
-        i1 = b_i << 2;
-        T01_tmp[i + i1] = ((p_e_idx_2 * T12_tmp[i1] + cB * T12_tmp[i1 + 1]) +
-                           sB * T12_tmp[i1 + 2]) +
-                          a * T12_tmp[i1 + 3];
+      for (i1 = 0; i1 < 4; i1++)
+      {
+        i2 = i1 << 2;
+        T01_tmp[i + i2] = ((p_e_idx_2 * T12_tmp[i2] + cB * T12_tmp[i2 + 1]) +
+                           sB * T12_tmp[i2 + 2]) +
+                          a * T12_tmp[i2 + 3];
       }
     }
     T12_tmp[0] = p_e_idx_0;
@@ -533,16 +601,18 @@ void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
     T12_tmp[11] = 0.0;
     T12_tmp[13] = 0.0;
     T12_tmp[15] = 1.0;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
       p_e_idx_2 = T01_tmp[i];
       cB = T01_tmp[i + 4];
       sB = T01_tmp[i + 8];
       a = T01_tmp[i + 12];
-      for (b_i = 0; b_i < 4; b_i++) {
-        i1 = b_i << 2;
-        T0P[i + i1] = ((p_e_idx_2 * T12_tmp[i1] + cB * T12_tmp[i1 + 1]) +
-                       sB * T12_tmp[i1 + 2]) +
-                      a * T12_tmp[i1 + 3];
+      for (i1 = 0; i1 < 4; i1++)
+      {
+        i2 = i1 << 2;
+        T0P[i + i2] = ((p_e_idx_2 * T12_tmp[i2] + cB * T12_tmp[i2 + 1]) +
+                       sB * T12_tmp[i2 + 2]) +
+                      a * T12_tmp[i2 + 3];
       }
     }
     T12_tmp[0] = scale;
@@ -561,16 +631,18 @@ void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
     T12_tmp[11] = 0.0;
     T12_tmp[13] = -300.0;
     T12_tmp[15] = 1.0;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
       p_e_idx_2 = T0P[i];
       cB = T0P[i + 4];
       sB = T0P[i + 8];
       a = T0P[i + 12];
-      for (b_i = 0; b_i < 4; b_i++) {
-        i1 = b_i << 2;
-        T01_tmp[i + i1] = ((p_e_idx_2 * T12_tmp[i1] + cB * T12_tmp[i1 + 1]) +
-                           sB * T12_tmp[i1 + 2]) +
-                          a * T12_tmp[i1 + 3];
+      for (i1 = 0; i1 < 4; i1++)
+      {
+        i2 = i1 << 2;
+        T01_tmp[i + i2] = ((p_e_idx_2 * T12_tmp[i2] + cB * T12_tmp[i2 + 1]) +
+                           sB * T12_tmp[i2 + 2]) +
+                          a * T12_tmp[i2 + 3];
       }
     }
     T12_tmp[0] = R_end_tmp;
@@ -590,114 +662,138 @@ void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
     T12_tmp[11] = 0.0;
     T12_tmp[13] = 0.0;
     T12_tmp[15] = 1.0;
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
       p_e_idx_2 = T01_tmp[i];
       cB = T01_tmp[i + 4];
       sB = T01_tmp[i + 8];
       a = T01_tmp[i + 12];
-      for (b_i = 0; b_i < 4; b_i++) {
-        i1 = b_i << 2;
-        T0P[i + i1] = ((p_e_idx_2 * T12_tmp[i1] + cB * T12_tmp[i1 + 1]) +
-                       sB * T12_tmp[i1 + 2]) +
-                      a * T12_tmp[i1 + 3];
+      for (i1 = 0; i1 < 4; i1++)
+      {
+        i2 = i1 << 2;
+        T0P[i + i2] = ((p_e_idx_2 * T12_tmp[i2] + cB * T12_tmp[i2 + 1]) +
+                       sB * T12_tmp[i2 + 2]) +
+                      a * T12_tmp[i2 + 3];
       }
       p_e_idx_2 = T0P[i];
       cB = T0P[i + 4];
       sB = T0P[i + 8];
       a = T0P[i + 12];
-      for (b_i = 0; b_i < 4; b_i++) {
-        i1 = b_i << 2;
-        T07[i + i1] =
-            ((p_e_idx_2 * (double)b_b[i1] + cB * (double)b_b[i1 + 1]) +
-             sB * (double)b_b[i1 + 2]) +
-            a * (double)b_b[i1 + 3];
+      for (i1 = 0; i1 < 4; i1++)
+      {
+        i2 = i1 << 2;
+        T07[i + i2] =
+            ((p_e_idx_2 * (double)b_b[i2] + cB * (double)b_b[i2 + 1]) +
+             sB * (double)b_b[i2 + 2]) +
+            a * (double)b_b[i2 + 3];
       }
     }
     /* 后撤得到P系 */
     scale = 3.3121686421112381E-170;
     absxk = fabs(T07[12]);
-    if (absxk > 3.3121686421112381E-170) {
+    if (absxk > 3.3121686421112381E-170)
+    {
       cB = 1.0;
       scale = absxk;
-    } else {
+    }
+    else
+    {
       t = absxk / 3.3121686421112381E-170;
       cB = t * t;
     }
     absxk = fabs(T07[13]);
-    if (absxk > scale) {
+    if (absxk > scale)
+    {
       t = scale / absxk;
       cB = cB * t * t + 1.0;
       scale = absxk;
-    } else {
+    }
+    else
+    {
       t = absxk / scale;
       cB += t * t;
     }
     absxk = fabs(T07[14]);
-    if (absxk > scale) {
+    if (absxk > scale)
+    {
       t = scale / absxk;
       cB = cB * t * t + 1.0;
       scale = absxk;
-    } else {
+    }
+    else
+    {
       t = absxk / scale;
       cB += t * t;
     }
     cB = scale * sqrt(cB);
-    if (532.452974533239 - cB > 1.0E-6) {
+    if (532.452974533239 - cB > 1.0E-6)
+    {
       cB = acos((144241.0 - cB * cB) / 139265.17008929403);
-      if (LOrR == 1) {
+      if (LOrR == 1)
+      {
         p_e_idx_0 = -((4.84265153241579 - cB) - 1.4711276743037347);
-      } else {
+      }
+      else
+      {
         p_e_idx_0 = 2.9116614490675312 - cB;
       }
       /* 以上求得 theta3 */
-      for (i = 0; i < 16; i++) {
+      for (i = 0; i < 16; i++)
+      {
         T0P[i] = iv[i];
       }
-      for (i = 0; i < 3; i++) {
+      for (i = 0; i < 3; i++)
+      {
         p_e_idx_2 = T07[i];
         R47[3 * i] = p_e_idx_2;
-        initVal = i << 2;
-        T0P[initVal] = p_e_idx_2;
+        T12_tmp_tmp = i << 2;
+        T0P[T12_tmp_tmp] = p_e_idx_2;
         p_e_idx_2 = T07[i + 4];
         R47[3 * i + 1] = p_e_idx_2;
-        T0P[initVal + 1] = p_e_idx_2;
+        T0P[T12_tmp_tmp + 1] = p_e_idx_2;
         p_e_idx_2 = T07[i + 8];
         R47[3 * i + 2] = p_e_idx_2;
-        T0P[initVal + 2] = p_e_idx_2;
+        T0P[T12_tmp_tmp + 2] = p_e_idx_2;
       }
-      for (i = 0; i < 9; i++) {
+      for (i = 0; i < 9; i++)
+      {
         R47[i] = -R47[i];
       }
       p_e_idx_2 = T07[12];
       cB = T07[13];
       sB = T07[14];
-      for (i = 0; i < 3; i++) {
+      for (i = 0; i < 3; i++)
+      {
         T0P[i + 12] = (R47[i] * p_e_idx_2 + R47[i + 3] * cB) + R47[i + 6] * sB;
       }
-      for (i = 0; i < 4; i++) {
+      for (i = 0; i < 4; i++)
+      {
         p_e_idx_2 = T0P[i];
         cB = T0P[i + 4];
         sB = T0P[i + 8];
         a = T0P[i + 12];
-        for (b_i = 0; b_i < 4; b_i++) {
-          i1 = b_i << 2;
-          T07[i + i1] =
-              ((p_e_idx_2 * (double)iv1[i1] + cB * (double)iv1[i1 + 1]) +
-               sB * (double)iv1[i1 + 2]) +
-              a * (double)iv1[i1 + 3];
+        for (i1 = 0; i1 < 4; i1++)
+        {
+          i2 = i1 << 2;
+          T07[i + i2] =
+              ((p_e_idx_2 * (double)iv1[i2] + cB * (double)iv1[i2 + 1]) +
+               sB * (double)iv1[i2 + 2]) +
+              a * (double)iv1[i2 + 3];
         }
       }
-      /*  plane = a*cos(theta3)-a+dd4*sin(theta3); */
-      /*  theta3_ = [plane z theta3] */
       t = sin(p_e_idx_0);
       theta4 = cos(p_e_idx_0);
       cB = T07[14] / ((30.0 * theta4 - 30.0) + 300.0 * t);
       p_e_idx_2 = fabs(cB);
-      if ((p_e_idx_2 >= -1.0) && (p_e_idx_2 <= 1.0)) {
-        if (FOrB == 1) {
+      if ((p_e_idx_2 >= -1.0) && (p_e_idx_2 <= 1.0))
+      {
+        if (FOrB == 1)
+        {
           theta2 = asin(cB);
           /*  -pi/2~pi/2 */
-        } else {
+        }
+        else
+        {
           theta2 = 3.1415926535897931 - asin(cB);
           /*  pi/2~3pi/2 */
         }
@@ -741,16 +837,18 @@ void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
         T01_tmp[15] = 1.0;
         T12_tmp[13] = 229.0;
         T12_tmp[15] = 1.0;
-        for (i = 0; i < 4; i++) {
+        for (i = 0; i < 4; i++)
+        {
           p_e_idx_2 = T01_tmp[i];
           cB = T01_tmp[i + 4];
           sB = T01_tmp[i + 8];
           a = T01_tmp[i + 12];
-          for (b_i = 0; b_i < 4; b_i++) {
-            i1 = b_i << 2;
-            b_T0P[i + i1] = ((p_e_idx_2 * T12_tmp[i1] + cB * T12_tmp[i1 + 1]) +
-                             sB * T12_tmp[i1 + 2]) +
-                            a * T12_tmp[i1 + 3];
+          for (i1 = 0; i1 < 4; i1++)
+          {
+            i2 = i1 << 2;
+            b_T0P[i + i2] = ((p_e_idx_2 * T12_tmp[i2] + cB * T12_tmp[i2 + 1]) +
+                             sB * T12_tmp[i2 + 2]) +
+                            a * T12_tmp[i2 + 3];
           }
         }
         T12_tmp[0] = theta4;
@@ -761,92 +859,138 @@ void ik_7dof_ofst(double z_alpha, double y_beta, double x_gamma, double p_x,
         T12_tmp[6] = theta4;
         T12_tmp[10] = 0.0;
         T12_tmp[14] = 0.0;
-        for (i = 0; i < 4; i++) {
-          initVal = i << 2;
-          b_i = iv2[i];
-          T12_tmp[initVal + 1] = b_i;
-          i1 = b_iv1[i];
-          T12_tmp[initVal + 3] = i1;
-          p_e_idx_2 = T12_tmp[initVal];
-          cB = T12_tmp[initVal + 2];
-          for (initVal = 0; initVal < 4; initVal++) {
-            T01_tmp[i + (initVal << 2)] = ((b_T0P[initVal] * p_e_idx_2 +
-                                            b_T0P[initVal + 4] * (double)b_i) +
-                                           b_T0P[initVal + 8] * cB) +
-                                          b_T0P[initVal + 12] * (double)i1;
+        for (i = 0; i < 4; i++)
+        {
+          T12_tmp_tmp = i << 2;
+          i1 = iv2[i];
+          T12_tmp[T12_tmp_tmp + 1] = i1;
+          i2 = b_iv1[i];
+          T12_tmp[T12_tmp_tmp + 3] = i2;
+          p_e_idx_2 = T12_tmp[T12_tmp_tmp];
+          cB = T12_tmp[T12_tmp_tmp + 2];
+          for (T12_tmp_tmp = 0; T12_tmp_tmp < 4; T12_tmp_tmp++)
+          {
+            T01_tmp[i + (T12_tmp_tmp << 2)] =
+                ((b_T0P[T12_tmp_tmp] * p_e_idx_2 +
+                  b_T0P[T12_tmp_tmp + 4] * (double)i1) +
+                 b_T0P[T12_tmp_tmp + 8] * cB) +
+                b_T0P[T12_tmp_tmp + 12] * (double)i2;
           }
         }
-        for (i = 0; i < 3; i++) {
+        for (i = 0; i < 3; i++)
+        {
           p_e_idx_2 = T01_tmp[i];
           cB = T01_tmp[i + 4];
           sB = T01_tmp[i + 8];
-          for (b_i = 0; b_i < 3; b_i++) {
-            i1 = b_i << 2;
-            R47[i + 3 * b_i] =
-                (p_e_idx_2 * T07[i1] + cB * T07[i1 + 1]) + sB * T07[i1 + 2];
+          for (i1 = 0; i1 < 3; i1++)
+          {
+            i2 = i1 << 2;
+            R47[i + 3 * i1] =
+                (p_e_idx_2 * T07[i2] + cB * T07[i2 + 1]) + sB * T07[i2 + 2];
           }
         }
         /* 以上求得 theta5 */
         scale = acos(-R47[7]);
-        if (fabs(scale - 3.1415926535897931) < 1.0E-6) {
+        if (fabs(scale - 3.1415926535897931) < 1.0E-6)
+        {
           theta4 = cur_theta[2];
           /* 注意，这里就要考虑正反对应了.加起来正好等于7 */
           p_e_idx_1 = rt_atan2d_snf(-R47[3], -R47[5]) - cur_theta[2];
-        } else {
+        }
+        else
+        {
           theta4_tmp = sin(scale - 3.1415926535897931);
           theta4 = rt_atan2d_snf(R47[8] / theta4_tmp, R47[6] / theta4_tmp);
           p_e_idx_1 = rt_atan2d_snf(-R47[4] / theta4_tmp, R47[1] / theta4_tmp);
         }
-        theta[0] = p_e_idx_1 - 3.1415926535897931;
-        theta[1] = scale - 3.1415926535897931;
-        theta[2] = -theta4;
-        theta[3] = -p_e_idx_0;
-        theta[4] = theta2;
-        theta[5] = -theta1;
-        theta[6] = n_idx_1;
+        if (lt_or_rt == 0)
+        {
+          theta[0] = p_e_idx_1 - 3.1415926535897931;
+          theta[1] = scale - 3.1415926535897931;
+          theta[2] = -theta4;
+          theta[3] = -p_e_idx_0;
+          theta[4] = theta2;
+          theta[5] = -theta1;
+          theta[6] = n_idx_1;
+        }
+        else
+        {
+          theta[0] = p_e_idx_1 + 3.1415926535897931;
+          theta[1] = scale - 3.1415926535897931;
+          theta[2] = -theta4;
+          theta[3] = -p_e_idx_0;
+          theta[4] = theta2;
+          theta[5] = -theta1;
+          theta[6] = n_idx_1;
+        }
         /*  倒置臂if 的 end */
         guard1 = true;
-      } else {
+      }
+      else
+      {
         *ik_state = 29;
         /*  这边是6Dof逆解z方向上的肘部奇异 */
-        for (i = 0; i < 7; i++) {
+        for (i = 0; i < 7; i++)
+        {
           theta[i] = cur_theta[i];
         }
       }
-    } else {
+    }
+    else
+    {
       /* 注意，这里就要考虑正反对应了.加起来正好等于7 */
       *ik_state = 28;
       /*  这边是6Dof逆解时肘部奇异 */
       /* 肘奇异 */
-      for (i = 0; i < 7; i++) {
+      for (i = 0; i < 7; i++)
+      {
         theta[i] = cur_theta[i];
       }
       /*  倒置臂if 的 end */
       guard1 = true;
     }
-  } else {
+  }
+  else
+  {
     *ik_state = 25;
     /*  代表肘关节伸直，遇到肘奇异 */
-    for (i = 0; i < 7; i++) {
+    for (i = 0; i < 7; i++)
+    {
       theta[i] = cur_theta[i];
     }
     guard1 = true;
   }
-  if (guard1) {
+  if (guard1)
+  {
     /*  大if分支的end */
-    if (lt_or_rt == 0) {
+    if (lt_or_rt == 0)
+    {
       /*  0-left arm   1-right arm */
-      initVal = 2008;
-    } else {
-      initVal = 2022;
+      for (i = 0; i < 7; i++)
+      {
+        lowLim[i] = (short)(10 * i + 2000);
+        upLim[i] = (short)(10 * i + 2001);
+      }
     }
-    for (b_i = 0; b_i < 7; b_i++) {
-      i = b_i << 1;
-      p_e_idx_2 = theta[b_i];
-      if (p_e_idx_2 < jntLim[i]) {
-        *ik_state = (initVal + b_i) - 7;
-      } else if (p_e_idx_2 > jntLim[i + 1]) {
-        *ik_state = initVal + b_i;
+    else
+    {
+      for (i = 0; i < 7; i++)
+      {
+        lowLim[i] = (short)(10 * i + 2100);
+        upLim[i] = (short)(10 * i + 2101);
+      }
+    }
+    for (T12_tmp_tmp = 0; T12_tmp_tmp < 7; T12_tmp_tmp++)
+    {
+      i = T12_tmp_tmp << 1;
+      p_e_idx_2 = theta[T12_tmp_tmp];
+      if (p_e_idx_2 < jntLim[i])
+      {
+        *ik_state = lowLim[T12_tmp_tmp];
+      }
+      else if (p_e_idx_2 > jntLim[i + 1])
+      {
+        *ik_state = upLim[T12_tmp_tmp];
       }
     }
   }

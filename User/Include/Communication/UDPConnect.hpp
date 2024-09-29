@@ -14,6 +14,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include "RobotData.h"
+#include "ParameterServer.h"
+
 #define MAX_BUFFER 1024 * 1024 * 2
 using namespace std;
 
@@ -91,7 +93,7 @@ public:
 class UdpSubscriber
 {
 public:
-    explicit UdpSubscriber(RobotData *robot_data); //
+    explicit UdpSubscriber(); //
     ~UdpSubscriber()
     {
         recv_ing = false;
@@ -123,6 +125,8 @@ protected:
     thread Thread;
     void recv_func(int subscriber_rate);
     bool recv_ing = false;
-    RobotData *robot_data_;
+    RobotData::RobotCmd robot_cmd_;;
+    RobotData::JointCmd joint_cmd_;
+    std::shared_ptr<ParameterServer> parameter_server = ParameterServer::getInstance();
 };
 #endif
