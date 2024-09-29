@@ -34,7 +34,6 @@ private:
     static std::shared_ptr<ParameterServer> instance;
     static std::once_flag initInstanceFlag;
 
-    std::shared_ptr<RobotData::RobotInfo> robot_info_;
     std::mutex dataMutex_;
 };
 

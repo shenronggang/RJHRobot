@@ -74,7 +74,7 @@ void UdpSubscriber::udpclose()
 int UdpSubscriber::rcv_calback(void *package, uint16_t port)
 {
     char *buf = (char *)package;
-    
+
     // bool data_error = false;
     switch (port)
     {
@@ -86,6 +86,11 @@ int UdpSubscriber::rcv_calback(void *package, uint16_t port)
         }
     case PORT_CARTESION:
         if (robot_cmd_.motion_mode == 5)
+        {
+            memcpy(&joint_cmd_, buf, sizeof(RobotData::JointCmd));
+            break;
+        }
+        else if (robot_cmd_.motion_mode == 4)
         {
             memcpy(&joint_cmd_, buf, sizeof(RobotData::JointCmd));
             break;
