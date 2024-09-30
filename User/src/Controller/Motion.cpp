@@ -223,26 +223,27 @@ void Motion::robotMoveJoint(RobotData::JointCmd &joint_cmd_)
 
 void Motion::robotMoveCartesion(RobotData::JointCmd &joint_cmd_)
 {
+    
     for (int i = 0; i < 2; i++)
     {
         // TODO 头未使用坐标系，而是关节角
-        robot_move_joints.head[i] = joint_cmd_.basic_cmd_info.q_exp_head[i];
+        robot_move_cartesion.head[i] = joint_cmd_.basic_cmd_info.q_exp_head[i];
     }
     for (int i = 0; i < 3; i++)
     {
         // TODO 头未使用坐标系，而是关节角
-        robot_move_joints.waist[i] = joint_cmd_.basic_cmd_info.q_exp_waist[i];
+        robot_move_cartesion.waist[i] = joint_cmd_.basic_cmd_info.q_exp_waist[i];
     }
     for (int i = 0; i < 7; i++)
     {
-        robot_move_joints.left_arm[i] = joint_cmd_.basic_cmd_info.arm_cartesion[0][i];
-        robot_move_joints.right_arm[i] = joint_cmd_.basic_cmd_info.arm_cartesion[1][i];
+        robot_move_cartesion.left_arm[i] = joint_cmd_.basic_cmd_info.arm_cartesion[0][i];
+        robot_move_cartesion.right_arm[i] = joint_cmd_.basic_cmd_info.arm_cartesion[1][i];
     }
-    cartesion2Joints(robot_current_joints, robot_move_joints);
+    cartesion2Joints(robot_move_cartesion, robot_move_joints);
     setFilterJoints(robot_move_joints);
 }
 
-void Motion::cartesion2Joints(DriverBase::RobotJoints &joints, DriverBase::RobotJoints &cartesion)
+void Motion::cartesion2Joints(DriverBase::RobotJoints &cartesion, DriverBase::RobotJoints &joints)
 {
     /**
      * @brief 机器人逆解--数值解
