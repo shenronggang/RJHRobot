@@ -82,27 +82,32 @@ int UdpSubscriber::rcv_calback(void *package, uint16_t port)
         if (robot_cmd_.motion_mode == 2)
         {
             memcpy(&joint_cmd_, buf, sizeof(RobotData::JointCmd));
+            parameter_server->setRobotInfo(joint_cmd_);
+
             break;
         }
     case PORT_CARTESION:
         if (robot_cmd_.motion_mode == 5)
         {
             memcpy(&joint_cmd_, buf, sizeof(RobotData::JointCmd));
+            parameter_server->setRobotInfo(joint_cmd_);
+
             break;
         }
         else if (robot_cmd_.motion_mode == 4)
         {
             memcpy(&joint_cmd_, buf, sizeof(RobotData::JointCmd));
+            parameter_server->setRobotInfo(joint_cmd_);
+
             break;
         }
     case PORT_ROBOT_CMD:
         memcpy(&robot_cmd_, buf, sizeof(RobotData::RobotCmd));
+    parameter_server->setRobotInfo(robot_cmd_);
         break;
     default:
         break;
     }
-    parameter_server->setRobotInfo(robot_cmd_);
-    parameter_server->setRobotInfo(joint_cmd_);
-
+    
     return 0;
 }
