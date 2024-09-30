@@ -64,6 +64,7 @@ void RJHSystem::recvRobotCmd()
     while (running)
     {
         parameter_server->getRobotInfo(_robot_cmd);
+        parameter_server->getRobotInfo(_joint_cmd);
         // 判断运行状态命令
         if (_robot_cmd.running_mode == 1)
         {
@@ -179,8 +180,8 @@ void RJHSystem::manual(RobotData::RobotCmd _robot_cmd, RobotData::JointCmd _join
         if (system_state == SystemState::MANUAL && _robot_cmd.running_mode == 2)
         {
             motion->motionStateSwitch(4);
+            motion->robotMoveJoint(_joint_cmd);
         }
-        motion->robotMoveJoint(_joint_cmd);
     }
     else
     {
@@ -200,8 +201,8 @@ void RJHSystem::movel(RobotData::RobotCmd _robot_cmd, RobotData::JointCmd _joint
         if (system_state == SystemState::MANUAL && _robot_cmd.running_mode == 2)
         {
             motion->motionStateSwitch(4);
+            motion->robotMoveCartesion(_joint_cmd);
         }
-        motion->robotMoveCartesion(_joint_cmd);
     }
     else
     {
