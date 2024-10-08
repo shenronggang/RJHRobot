@@ -223,7 +223,6 @@ void Motion::robotMoveJoint(RobotData::JointCmd &joint_cmd_)
 
 void Motion::robotMoveCartesion(RobotData::JointCmd &joint_cmd_)
 {
-    
     for (int i = 0; i < 2; i++)
     {
         // TODO 头未使用坐标系，而是关节角
@@ -241,7 +240,7 @@ void Motion::robotMoveCartesion(RobotData::JointCmd &joint_cmd_)
     }
     cartesion2Joints(robot_move_cartesion, robot_move_joints);
     setFilterJoints(robot_move_joints);
-}
+} /*  */
 
 void Motion::cartesion2Joints(DriverBase::RobotJoints &cartesion, DriverBase::RobotJoints &joints)
 {
@@ -253,14 +252,13 @@ void Motion::cartesion2Joints(DriverBase::RobotJoints &cartesion, DriverBase::Ro
     double left_pos[ARM_DOF], right_pos[ARM_DOF],
         left_ik_joints[ARM_DOF], right_ik_joints[ARM_DOF];
     int left_ik_state, right_ik_state;
-    for (int i = 0; i < ARM_DOF-1; i++)
+    for (int i = 0; i < ARM_DOF ; i++)
     {
-
         left_pos[i] = static_cast<double>(cartesion.left_arm[i]);
         right_pos[i] = static_cast<double>(cartesion.right_arm[i]);
     }
     _ik(left_pos, 0, left_ik_joints);
-    _ik(right_pos, 0, right_ik_joints);
+    _ik(right_pos, 1, right_ik_joints);
     for (int i = 0; i < ARM_DOF; i++)
     {
         joints.left_arm[i] = static_cast<float>(driver->radToDeg(left_ik_joints[i]));
@@ -288,7 +286,7 @@ void Motion::joints2Cartesion(DriverBase::RobotJoints &joints, DriverBase::Robot
 
 void Motion::_ik(double *pos, bool l_or_r, double *ik_joint)
 {
-    double cur_joint[ARM_DOF], limit[ARM_DOF*2], upper_limit[ARM_DOF];
+    double cur_joint[ARM_DOF], limit[ARM_DOF * 2], upper_limit[ARM_DOF];
     int ik_state = 0;
     if (l_or_r == 0)
     {
@@ -296,7 +294,7 @@ void Motion::_ik(double *pos, bool l_or_r, double *ik_joint)
         {
             cur_joint[i] = static_cast<double>(driver->degToRad(robot_current_joints.left_arm[i]));
         }
-        memcpy(limit, motion_config.left_arm.joints_limit, sizeof(double)*ARM_DOF*2);
+        memcpy(limit, motion_config.left_arm.joints_limit, sizeof(double) * ARM_DOF * 2);
     }
     else
     {
@@ -304,7 +302,7 @@ void Motion::_ik(double *pos, bool l_or_r, double *ik_joint)
         {
             cur_joint[i] = static_cast<double>(driver->degToRad(robot_current_joints.right_arm[i]));
         }
-        memcpy(limit, motion_config.right_arm.joints_limit, sizeof(double)*ARM_DOF*2);
+        memcpy(limit, motion_config.right_arm.joints_limit, sizeof(double) * ARM_DOF * 2);
     }
     ik_7dof_ofst(pos[3], pos[4], pos[5],
                  pos[0], pos[1], pos[2], pos[6],
@@ -376,9 +374,9 @@ void Motion::_fk(double *fk_joints, bool l_or_r, double *cart)
     cart[0] = carte[0];
     cart[1] = carte[1];
     cart[2] = carte[2];
-    cart[3] = eulVal[0];
+    cart[5] = eulVal[0];
     cart[4] = eulVal[1];
-    cart[5] = eulVal[2];
+    cart[3] = eulVal[2];
     cart[6] = bet;
     // std::cout << std::endl;
     // for (int i = 0; i < ARM_DOF; i++)
