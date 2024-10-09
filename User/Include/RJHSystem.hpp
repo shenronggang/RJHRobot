@@ -12,19 +12,20 @@
 #include <HYYRobotInterface.h>
 #include <Motion.hpp>
 #include <ParameterServer.h>
+#include <Logger.hpp>
 
-
-
+std::string folderPath = "/home/robot/Work/system/robot_config/RJHRobot/systemlog";
 class RJHSystem
 {
 private:
+    Logger logger;
     string driver_name = "BlackRobot";
     std::unique_ptr<Motion> motion;
 
     // std::string address = "192.168.112.62";  //sunyusheng
     // std::string address = "192.168.113.209"; //chenchensheng
     // std::string address = "192.168.113.235"; //jiangzhengjie
-    std::string address = "192.168.113.211"; //lizihan
+    std::string address = "192.168.113.211"; // lizihan
     // RobotData *robot_data;
 
     std::shared_ptr<ParameterServer> parameter_server;
@@ -67,6 +68,7 @@ private:
     void format_joints(DriverBase::RobotJoints &robot_joints);
     DriverBase::RobotJoints format_joints();
     string motion_config_path = "/home/robot/Work/system/robot_config/RJHRobot/User/config";
+
 public:
     RJHSystem();
     ~RJHSystem();

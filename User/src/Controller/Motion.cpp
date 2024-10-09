@@ -223,15 +223,25 @@ void Motion::robotMoveJoint(RobotData::JointCmd &joint_cmd_)
 
 void Motion::robotMoveCartesion(RobotData::JointCmd &joint_cmd_)
 {
+    /**
+     * @brief 根据关节指令移动机器人到笛卡尔坐标系下的指定位置
+     *
+     * 本函数将机器人的关节指令转换为笛卡尔坐标系下的运动指令，并进行滤波处理
+     * 目前的实现中，头部和腰部的运动仍然使用关节角而非笛卡尔坐标系
+     *
+     * @param joint_cmd_ 机器人关节指令，包含基本命令信息和期望的关节角度
+     */
     for (int i = 0; i < 2; i++)
     {
         // TODO 头未使用坐标系，而是关节角
-        robot_move_cartesion.head[i] = joint_cmd_.basic_cmd_info.q_exp_head[i];
+        // robot_move_cartesion.head[i] = joint_cmd_.basic_cmd_info.q_exp_head[i];
+        robot_move_cartesion.head[i] = robot_current_joints.head[i];
     }
     for (int i = 0; i < 3; i++)
     {
         // TODO 头未使用坐标系，而是关节角
-        robot_move_cartesion.waist[i] = joint_cmd_.basic_cmd_info.q_exp_waist[i];
+        // robot_move_cartesion.waist[i] = joint_cmd_.basic_cmd_info.q_exp_waist[i];
+        robot_move_cartesion.waist[i] = robot_current_joints.waist[i];
     }
     for (int i = 0; i < 7; i++)
     {
@@ -252,7 +262,9 @@ void Motion::cartesion2Joints(DriverBase::RobotJoints &cartesion, DriverBase::Ro
     double left_pos[ARM_DOF], right_pos[ARM_DOF],
         left_ik_joints[ARM_DOF], right_ik_joints[ARM_DOF];
     int left_ik_state, right_ik_state;
-    for (int i = 0; i < ARM_DOF ; i++)
+    memcpy(joints.head, cartesion.head, sizeof(float) * HEAD_DOF);
+    memcpy(joints.waist, cartesion.waist, sizeof(float)* WAIST_DOF);   
+    for (int i = 0; i < ARM_DOF; i++)
     {
         left_pos[i] = static_cast<double>(cartesion.left_arm[i]);
         right_pos[i] = static_cast<double>(cartesion.right_arm[i]);
@@ -264,6 +276,7 @@ void Motion::cartesion2Joints(DriverBase::RobotJoints &cartesion, DriverBase::Ro
         joints.left_arm[i] = static_cast<float>(driver->radToDeg(left_ik_joints[i]));
         joints.right_arm[i] = static_cast<float>(driver->radToDeg(right_ik_joints[i]));
     }
+    
 }
 
 void Motion::joints2Cartesion(DriverBase::RobotJoints &joints, DriverBase::RobotJoints &cartesion)
@@ -313,6 +326,10 @@ void Motion::_ik(double *pos, bool l_or_r, double *ik_joint)
     if (ik_state != 0)
     {
         std::cout << "[Motion]: Ik error, l_or_r: " << l_or_r << " ik state:" << ik_state << std::endl;
+        for (int i = 0; i < ARM_DOF; i++)
+        {
+            cur_joint[i] = static_cast<double>(robot_current_joints.left_arm[i]);
+        }
     }
 }
 
@@ -393,6 +410,15 @@ void Motion::resetMotionError()
 
 void Motion::loadMotionConfig(std::string path)
 {
+    /**
+     * 从YAML文件加载运动配置
+     *
+     * @param path YAML文件的路径
+     *
+     * 此函数读取指定路径下的YAML文件，从中提取机器人的左臂和右臂的运动配置数据
+     * 配置数据包括DH参数和关节限制，这些参数对于机器人的运动学计算至关重要
+     * 如果YAML文件解析失败，函数将打印错误信息
+     */
     YAML::Node config = YAML::LoadFile(path);
     if (!config)
     {
