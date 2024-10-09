@@ -1,6 +1,6 @@
 #include <RJHSystem.hpp>
 
-RJHSystem::RJHSystem()
+RJHSystem::RJHSystem() : logger(folderPath)
 {
     motion = std::make_unique<Motion>(driver_name);
     running = true;
@@ -126,6 +126,13 @@ void RJHSystem::robot_info_publish(int rate)
             ssize_t sent_bytes_test = sendto(joints_publisher->socket_fd_,
                                              &publish_info, sizeof(RobotData::RobotPublishInfo), 0,
                                              (struct sockaddr *)&joints_publisher->server_addr_, joints_publisher->len);
+            std::ostringstream oss;
+            for (int i = 0; i < 7; ++i)
+            {
+                oss << publish_info.joint_q_arm[0][i];
+            }
+            std::string str_joint = oss.str();
+            logger.logWrite("[current joints]: " + str_joint);
             if (sent_bytes_test < 0)
             {
                 perror("sendto");
@@ -193,15 +200,22 @@ void RJHSystem::movel(RobotData::RobotCmd _robot_cmd, RobotData::JointCmd _joint
 {
     if (system_state == SystemState::IDLE)
     {
-        system_state = SystemState::MANUAL;
+        system_state = SystemState::MOVEL;
         std::cout << "system state chang modle movel :" << std::endl;
     }
-    else if (system_state == SystemState::MANUAL)
+    else if (system_state == SystemState::MOVEL)
     {
-        if (system_state == SystemState::MANUAL && _robot_cmd.running_mode == 2)
+        if (system_state == SystemState::MOVEL && _robot_cmd.running_mode == 2)
         {
             motion->motionStateSwitch(4);
             motion->robotMoveCartesion(_joint_cmd);
+            // std::ostringstream oss2;
+            // for (int i = 0; i < 7; ++i)
+            // {
+            //     oss2 << _joint_cmd.basic_cmd_info.ee_motion[0][i];
+            // }
+            // std::string str_joint2 = oss2.str();
+            // logger.logWrite("[movel]: " + str_joint2);
         }
     }
     else
