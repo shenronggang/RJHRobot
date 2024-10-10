@@ -37,6 +37,7 @@ private:
     MotionState motion_state = MotionState::INIT;
     LowFilter head_filters[2];
     LowFilter waist_filters[3];
+    
     LowFilter left_arm_filters[7];
     LowFilter right_arm_filters[7];
     std::mutex filter_mtx;
