@@ -326,6 +326,10 @@ void Motion::_ik(double *pos, bool l_or_r, double *ik_joint)
     if (ik_state != 0)
     {
         std::cout << "[Motion]: Ik error, l_or_r: " << l_or_r << " ik state:" << ik_state << std::endl;
+        for (int i = 0; i < ARM_DOF; i++)
+        {
+            cur_joint[i] = static_cast<double>(robot_current_joints.left_arm[i]);
+        }
     }
 }
 

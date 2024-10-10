@@ -125,14 +125,8 @@ void RJHSystem::robot_info_publish(int rate)
             parameter_server->setRobotInfo(publish_info);
             ssize_t sent_bytes_test = sendto(joints_publisher->socket_fd_,
                                              &publish_info, sizeof(RobotData::RobotPublishInfo), 0,
-                                             (struct sockaddr *)&joints_publisher->server_addr_, joints_publisher->len);
-            std::ostringstream oss;
-            for (int i = 0; i < 7; ++i)
-            {
-                oss << publish_info.joint_q_arm[0][i];
-            }
-            std::string str_joint = oss.str();
-            logger.logWrite("[current joints]: " + str_joint);
+                                             (struct sockaddr *)&joints_publisher->server_addr_,
+                                             joints_publisher->len);
             if (sent_bytes_test < 0)
             {
                 perror("sendto");
@@ -209,13 +203,6 @@ void RJHSystem::movel(RobotData::RobotCmd _robot_cmd, RobotData::JointCmd _joint
         {
             motion->motionStateSwitch(4);
             motion->robotMoveCartesion(_joint_cmd);
-            // std::ostringstream oss2;
-            // for (int i = 0; i < 7; ++i)
-            // {
-            //     oss2 << _joint_cmd.basic_cmd_info.ee_motion[0][i];
-            // }
-            // std::string str_joint2 = oss2.str();
-            // logger.logWrite("[movel]: " + str_joint2);
         }
     }
     else
