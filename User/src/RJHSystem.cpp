@@ -3,6 +3,8 @@
 RJHSystem::RJHSystem() : logger(folderPath)
 {
     motion = std::make_unique<Motion>(driver_name);
+    torque_sensor = std::make_unique<TorqueSensor>();
+    test();
     running = true;
     parameter_server = ParameterServer::getInstance();
     udp_subscriber = new UdpSubscriber();
@@ -10,6 +12,7 @@ RJHSystem::RJHSystem() : logger(folderPath)
     joints_publisher = std::make_unique<UdpPublisher>(address, 8012);
     status_publisher = std::make_unique<UdpPublisher>(address, 8011);
     sleep(2);
+
     // 获取当前角度初始化滤波器初始位置
 }
 
@@ -17,6 +20,50 @@ RJHSystem::~RJHSystem()
 {
     delete udp_subscriber;
     stop();
+}
+
+void RJHSystem::test()
+{
+    int ret = 0;
+    // torque_sensor ->clean_torque(0);
+    double torque[2][6];
+    while (1)
+    {
+        // torque_sensor ->clean_torque(0);
+        // torque_sensor->get_torque(torque);
+        // // ret = TorqueSensorCloseBias("left");
+        // std::cout << "[TorqueSensor]: left:";
+        // for (int i = 0; i < 6; i++)
+        // {
+        //     std::cout << torque[0][i] << " ";
+        // }
+
+        // std::cout << "        right: ";
+        // for (int i = 0; i < 6; i++)
+        // {
+        //     std::cout << torque[1][i] << " ";
+        // }
+        // std::cout << std::endl;
+        // // sleep(1);
+        std::cout << "[TorqueSensor]: left:";
+        double t1[6];
+        const char *name1 = "left";
+        int res1 = GetSensorTorque(name1, t1);
+        for (int i = 0; i < 6; i++)
+        {
+            std::cout << t1[i] << " ";
+        }
+
+        std::cout << "        right: ";
+        double t2[6];
+        const char *name2 = "right";
+        int res2 = GetSensorTorque(name2, t2);
+        for (int i = 0; i < 6; i++)
+        {
+            std::cout << t2[i] << " ";
+        }
+        std::cout << std::endl;
+    }
 }
 
 void RJHSystem::start()

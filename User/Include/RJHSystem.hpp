@@ -13,6 +13,8 @@
 #include <Motion.hpp>
 #include <ParameterServer.h>
 #include <Logger.hpp>
+#include <TorqueSensor.hpp>
+
 
 std::string folderPath = "/home/robot/Work/system/robot_config/RJHRobot/systemlog";
 class RJHSystem
@@ -21,6 +23,7 @@ private:
     Logger logger;
     string driver_name = "BlackRobot";
     std::unique_ptr<Motion> motion;
+    std::unique_ptr<TorqueSensor> torque_sensor;
 
     // std::string address = "192.168.112.62";  //sunyusheng
     // std::string address = "192.168.113.209"; //chenchensheng
@@ -77,5 +80,6 @@ public:
     void recvRobotCmd();
     void system_state_update();
     void loadConfig();
+    void test();
 };
 #endif // SYSTEM_H
