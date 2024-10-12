@@ -32,7 +32,7 @@ private:
         // std::vector<double> step_vec6_left;
         // std::vector<double> step_vec6_right;
     };
-    NumPlan num_interp;
+    
 
     enum MotionState
     {
@@ -108,8 +108,9 @@ public:
     void _ik(double *pos, bool l_or_r, double *ik_joint);
     void _fk(double *fk_joints, bool l_or_r, double *cart);
     
-    void calnum_Interp_L(DriverBase::RobotJoints &cur, DriverBase::RobotJoints &target, int &num)
-    void cartesionPlan_L(DriverBase::RobotJoints &cur, RobotJoints &tar, RobotJoints &interp, NumPlan &num)
+    NumPlan num_interp;
+    void calnum_Interp_L(DriverBase::RobotJoints &cur, DriverBase::RobotJoints &tar, NumPlan &num);
+    void cartesionPlan_L(DriverBase::RobotJoints &cur, DriverBase::RobotJoints &tar, DriverBase::RobotJoints *interp, NumPlan &num);
 };
 
 #endif // MOTION_H

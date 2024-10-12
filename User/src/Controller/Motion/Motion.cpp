@@ -248,13 +248,13 @@ void Motion::robotMoveCartesion(RobotData::JointCmd &joint_cmd_)
         robot_move_cartesion.left_arm[i] = joint_cmd_.basic_cmd_info.arm_cartesion[0][i];
         robot_move_cartesion.right_arm[i] = joint_cmd_.basic_cmd_info.arm_cartesion[1][i];
     }
-    
+
     // 线性插补robot_move_cartesion[x y z r p y beta],增添函数
-    
-    calnum_Interp_L(robot_current_pos, robot_move_cartesion, num_interp); 
+
+    calnum_Interp_L(robot_current_pos, robot_move_cartesion, num_interp);
     DriverBase::RobotJoints robot_move_cartesion_interp[num_interp.max];
     cartesionPlan_L(robot_current_pos, robot_move_cartesion, robot_move_cartesion_interp, num_interp);
-    for (int i =0; i<num_interp.max; i++)
+    for (int i = 0; i < num_interp.max; i++)
     {
         cartesion2Joints(robot_move_cartesion_interp[i], robot_move_joints);
         setFilterJoints(robot_move_joints);
@@ -276,17 +276,20 @@ void Motion::calnum_Interp_L(DriverBase::RobotJoints &cur, DriverBase::RobotJoin
     Vector3D vec3_right = {tar_pos_right[0] - cur_pos_right[0], tar_pos_right[1] - cur_pos_right[1], tar_pos_right[2] - cur_pos_right[2]};
     double totoal_dis_left = sqrt(pow((vec3_left[0]), 2) + pow((vec3_left[1]), 2) + pow((vec3_left[2]), 2));
     double totoal_dis_right = sqrt(pow((vec3_right[0]), 2) + pow((vec3_right[1]), 2) + pow((vec3_right[2]), 2));
-    num.left_arm = static_cast<int>(std::ceil(totoal_dis_left / DIS_INTERP))+1;
-    num.right_arm = static_cast<int>(std::ceil(totoal_dis_right / DIS_INTERP))+1;
+    num.left_arm = static_cast<int>(std::ceil(totoal_dis_left / DIS_INTERP)) + 1;
+    num.right_arm = static_cast<int>(std::ceil(totoal_dis_right / DIS_INTERP)) + 1;
     // Vector6D vec6_left = vec3_left;
     // vec6_left.insert(vec6_left.end(), {tar_pos_left[3] - cur_pos_left[3], tar_pos_left[4] - cur_pos_left[4], tar_pos_left[5] - cur_pos_left[5]});
     // Vector6D vec6_right = vec3_right;
     // vec6_right.insert(vec6_right.end(), {tar_pos_right[3] - cur_pos_right[3], tar_pos_right[4] - cur_pos_right[4], tar_pos_right[5] - cur_pos_right[5]});
 
-    if (num.left_arm > num.right_arm){
+    if (num.left_arm > num.right_arm)
+    {
         num.max = num.left_arm;
         num.flag = 0;
-    } else{
+    }
+    else
+    {
         num.max = num.right_arm;
         num.flag = 1;
     }
@@ -294,30 +297,29 @@ void Motion::calnum_Interp_L(DriverBase::RobotJoints &cur, DriverBase::RobotJoin
     // num.step_vec6_right = divide(vec6_right, num.right_arm-1);
 }
 
-
-void Motion::cartesionPlan_L(DriverBase::RobotJoints &cur, RobotJoints &tar, RobotJoints &interp, NumPlan &num)
+void Motion::cartesionPlan_L(DriverBase::RobotJoints &cur, DriverBase::RobotJoints &tar, DriverBase::RobotJoints *interp, NumPlan &num)
 {
     // 计算当前位置和目标位置的间隔，虽然有提前定义，但是插值点数要取整，因此实际插值间隔可能会偏离定义插值间隔，需重新计算校准
     double interval_left[6];
     double interval_right[6];
     for (int i = 0; i < 6; i++)
     {
-        interval_left[i] = (tar.left_arm[i] - cur.left_arm[i])/(num.left_arm - 1);
-        interval_right[i] = (tar.right_arm[i] - cur.right_arm[i])/(num.right_arm - 1);
+        interval_left[i] = (tar.left_arm[i] - cur.left_arm[i]) / (num.left_arm - 1);
+        interval_right[i] = (tar.right_arm[i] - cur.right_arm[i]) / (num.right_arm - 1);
     }
     // 生成等距点
     for (int i = 0; i < num.left_arm; i++)
     {
         for (int j = 0; j < 6; j++)
         {
-            interp[i].left_arm[j] = cur.left_arm[j] + interval[j]*i;
+            interp[i].left_arm[j] = cur.left_arm[j] + interval_left[j] * i;
         }
     }
     for (int i = 0; i < num.right_arm; i++)
     {
         for (int j = 0; j < 6; j++)
         {
-            interp[i].right_arm[j] = cur.right_arm[j] + interval[j]*i;
+            interp[i].right_arm[j] = cur.right_arm[j] + interval_right[j] * i;
         }
     }
     // 左右臂数据对齐
@@ -327,16 +329,17 @@ void Motion::cartesionPlan_L(DriverBase::RobotJoints &cur, RobotJoints &tar, Rob
     {
         for (int i = num.right_arm; i < num.max; i++)
         {
-            interp[i].right_arm = interp[num.right_arm].right_arm;
+            memcpy(interp[i].right_arm, interp[num.right_arm].right_arm, sizeof(float) * 6);
         }
-    }else{
+    }
+    else
+    {
         for (int i = num.left_arm; i < num.max; i++)
         {
-            interp[i].left_arm = interp[num.left_arm].left_arm;
+            memcpy(interp[i].left_arm, interp[num.left_arm].left_arm, sizeof(float) * 6);
         }
     }
 }
-
 
 void Motion::cartesion2Joints(DriverBase::RobotJoints &cartesion, DriverBase::RobotJoints &joints)
 {
@@ -349,7 +352,7 @@ void Motion::cartesion2Joints(DriverBase::RobotJoints &cartesion, DriverBase::Ro
         left_ik_joints[ARM_DOF], right_ik_joints[ARM_DOF];
     int left_ik_state, right_ik_state;
     memcpy(joints.head, cartesion.head, sizeof(float) * HEAD_DOF);
-    memcpy(joints.waist, cartesion.waist, sizeof(float)* WAIST_DOF);   
+    memcpy(joints.waist, cartesion.waist, sizeof(float) * WAIST_DOF);
     for (int i = 0; i < ARM_DOF; i++)
     {
         left_pos[i] = static_cast<double>(cartesion.left_arm[i]);
@@ -362,7 +365,6 @@ void Motion::cartesion2Joints(DriverBase::RobotJoints &cartesion, DriverBase::Ro
         joints.left_arm[i] = static_cast<float>(driver->radToDeg(left_ik_joints[i]));
         joints.right_arm[i] = static_cast<float>(driver->radToDeg(right_ik_joints[i]));
     }
-    
 }
 
 void Motion::joints2Cartesion(DriverBase::RobotJoints &joints, DriverBase::RobotJoints &cartesion)
