@@ -13,6 +13,7 @@
 #define HEAD_DOF 2
 #define WAIST_DOF 3
 #define ARM_DOF 7
+#define DIS_INTERP 0.5
 class Motion
 {
 private:
@@ -20,7 +21,18 @@ private:
     std::string driver_name;
     std::thread _moveDriverThread;
     DriverBase::RobotJoints robot_current_joints, robot_current_pos,
-        robot_move_joints, robot_move_cartesion;
+        robot_move_joints, robot_move_cartesion, robot_move_cartesion_interp;
+    
+    struct NumPlan
+    {
+        int left_arm;
+        int right_arm;
+        int max;
+        int flag; // 0：左臂 1：右臂
+        // std::vector<double> step_vec6_left;
+        // std::vector<double> step_vec6_right;
+    };
+    NumPlan num_interp;
 
     enum MotionState
     {
@@ -91,6 +103,9 @@ public:
     void joints2Cartesion(DriverBase::RobotJoints &robot_current_joints, DriverBase::RobotJoints &robot_move_cartesion);
     void _ik(double *pos, bool l_or_r, double *ik_joint);
     void _fk(double *fk_joints, bool l_or_r, double *cart);
+    
+    void calnum_Interp_L(DriverBase::RobotJoints &cur, DriverBase::RobotJoints &target, int &num)
+    void cartesionPlan_L(DriverBase::RobotJoints &cur, RobotJoints &tar, RobotJoints &interp, NumPlan &num)
 };
 
 #endif // MOTION_H
