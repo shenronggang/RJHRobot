@@ -2,6 +2,10 @@
 
 TorqueSensor::TorqueSensor(/* args */)
 {
+    /**
+     * @brief 传感器走ethercat通讯，依赖HYY控制器通讯接口，
+     * 手臂上2个传感器name在文件ExternalDeviceConfig.yaml的force_sensor[name]中
+     */
     torque_name.left_torque = "left";
     torque_name.right_torque = "right";
 
@@ -38,7 +42,8 @@ void TorqueSensor::get_torque(double *torque, const char *torque_name)
     if (ret_left != 0)
     {
         printf("Get left torque failed\n");
-    }}
+    }
+}
 void TorqueSensor::clean_torque(int num)
 {
     int ret = 0;
