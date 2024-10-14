@@ -13,7 +13,7 @@
 #define HEAD_DOF 2
 #define WAIST_DOF 3
 #define ARM_DOF 7
-#define DIS_INTERP 0.5
+#define DIS_INTERP 5
 class Motion
 {
 private:

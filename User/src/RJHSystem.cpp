@@ -40,6 +40,8 @@ void RJHSystem::start()
             manual(_robot_cmd, _joint_cmd);
             break;
         case SystemState::MOVEL:
+            sleep(2);
+            parameter_server->getRobotInfo(_joint_cmd);
             movel(_robot_cmd, _joint_cmd);
             break;
         case SystemState::MOTION_CAPTURE:

@@ -260,9 +260,9 @@ void Motion::robotMoveCartesion(RobotData::JointCmd &joint_cmd_)
         setFilterJoints(robot_move_joints);
     }
 
-    // cartesion2Joints(robot_move_cartesion_interp, robot_move_joints);
+    // cartesion2Joints(robot_move_cartesion, robot_move_joints);
     // setFilterJoints(robot_move_joints);
-} /*  */
+}
 
 void Motion::calnum_Interp_L(DriverBase::RobotJoints &cur, DriverBase::RobotJoints &tar, NumPlan &num)
 {
