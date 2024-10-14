@@ -252,8 +252,22 @@ void Motion::robotMoveCartesion(RobotData::JointCmd &joint_cmd_)
     // 线性插补robot_move_cartesion[x y z r p y beta],增添函数
 
     calnum_Interp_L(robot_current_pos, robot_move_cartesion, num_interp);
+
     DriverBase::RobotJoints robot_move_cartesion_interp[num_interp.max];
+    for j = (int j = 0; j < num_interp.max; j++)
+    {
+        for (int i = 0; i < 2; i++)
+        { 
+            robot_move_cartesion_interp[j].head[i] = robot_current_joints.head[i];
+        }
+        for (int i = 0; i < 3; i++)
+        {
+            robot_move_cartesion_interp[j].waist[i] = robot_current_joints.waist[i];
+        }
+    }
+
     cartesionPlan_L(robot_current_pos, robot_move_cartesion, robot_move_cartesion_interp, num_interp);
+
     for (int i = 0; i < num_interp.max; i++)
     {
         cartesion2Joints(robot_move_cartesion_interp[i], robot_move_joints);
@@ -323,8 +337,8 @@ void Motion::cartesionPlan_L(DriverBase::RobotJoints &cur, DriverBase::RobotJoin
         }
     }
     // 左右臂数据对齐
-    int delta;
-    delta = (num.max - num.left_arm) + (num.max - num.right_arm);
+    // int delta;
+    // delta = (num.max - num.left_arm) + (num.max - num.right_arm);
     if (num.flag == 0)
     {
         for (int i = num.right_arm; i < num.max; i++)
