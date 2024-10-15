@@ -39,8 +39,8 @@ void RJHSystem::start()
         case SystemState::MANUAL:
             manual(_robot_cmd, _joint_cmd);
             break;
-        case SystemState::MOVEL:
-            movel(_robot_cmd, _joint_cmd);
+        case SystemState::MOVEJ:
+            movej(_robot_cmd, _joint_cmd);
             break;
         case SystemState::MOTION_CAPTURE:
             motion_capture(_robot_cmd, _joint_cmd);
@@ -190,12 +190,12 @@ void RJHSystem::manual(RobotData::RobotCmd _robot_cmd, RobotData::JointCmd _join
     }
 }
 
-void RJHSystem::movel(RobotData::RobotCmd _robot_cmd, RobotData::JointCmd _joint_cmd)
+void RJHSystem::movej(RobotData::RobotCmd _robot_cmd, RobotData::JointCmd _joint_cmd)
 {
     if (system_state == SystemState::IDLE)
     {
         system_state = SystemState::MOVEL;
-        std::cout << "system state chang modle movel :" << std::endl;
+        std::cout << "system state chang modle movej :" << std::endl;
     }
     else if (system_state == SystemState::MOVEL)
     {

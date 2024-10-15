@@ -55,14 +55,14 @@ private:
         IDLE = 0,
         DYNAMIC,
         MANUAL,
-        AUTO,
         MOVEL,
+        MOVEJ,
         MOTION_CAPTURE,
     };
     SystemState system_state = SystemState::IDLE;
     void idle();
     void manual(RobotData::RobotCmd _robot_cmd, RobotData::JointCmd _joint_cmd);
-    void movel(RobotData::RobotCmd _robot_cmd, RobotData::JointCmd _joint_cmd);
+    void movej(RobotData::RobotCmd _robot_cmd, RobotData::JointCmd _joint_cmd);
     void motion_capture(RobotData::RobotCmd _robot_cmd, RobotData::JointCmd _joint_cmd);
 
     void format_joints(DriverBase::RobotJoints &robot_joints);
