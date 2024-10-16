@@ -254,7 +254,7 @@ void Motion::robotMoveCartesion(RobotData::JointCmd &joint_cmd_)
     calnum_Interp_L(robot_current_pos, robot_move_cartesion, num_interp);
 
     DriverBase::RobotJoints robot_move_cartesion_interp[num_interp.max];
-    for j = (int j = 0; j < num_interp.max; j++)
+    for  (int j = 0; j < num_interp.max; j++)
     {
         for (int i = 0; i < 2; i++)
         { 
@@ -290,8 +290,20 @@ void Motion::calnum_Interp_L(DriverBase::RobotJoints &cur, DriverBase::RobotJoin
     Vector3D vec3_right = {tar_pos_right[0] - cur_pos_right[0], tar_pos_right[1] - cur_pos_right[1], tar_pos_right[2] - cur_pos_right[2]};
     double totoal_dis_left = sqrt(pow((vec3_left[0]), 2) + pow((vec3_left[1]), 2) + pow((vec3_left[2]), 2));
     double totoal_dis_right = sqrt(pow((vec3_right[0]), 2) + pow((vec3_right[1]), 2) + pow((vec3_right[2]), 2));
-    num.left_arm = static_cast<int>(std::ceil(totoal_dis_left / DIS_INTERP)) + 1;
-    num.right_arm = static_cast<int>(std::ceil(totoal_dis_right / DIS_INTERP)) + 1;
+    
+    if (totoal_dis_left < DIS_INTERP )
+    {
+        num.left_arm = 2;
+    }else{
+        num.left_arm = static_cast<int>(std::ceil(totoal_dis_left / DIS_INTERP)) + 1;
+    }
+    if (totoal_dis_right < DIS_INTERP)
+    {
+        num.right_arm = 2;
+    }else{
+        num.right_arm = static_cast<int>(std::ceil(totoal_dis_right / DIS_INTERP)) + 1;
+    }
+      
     // Vector6D vec6_left = vec3_left;
     // vec6_left.insert(vec6_left.end(), {tar_pos_left[3] - cur_pos_left[3], tar_pos_left[4] - cur_pos_left[4], tar_pos_left[5] - cur_pos_left[5]});
     // Vector6D vec6_right = vec3_right;
@@ -343,14 +355,14 @@ void Motion::cartesionPlan_L(DriverBase::RobotJoints &cur, DriverBase::RobotJoin
     {
         for (int i = num.right_arm; i < num.max; i++)
         {
-            memcpy(interp[i].right_arm, interp[num.right_arm].right_arm, sizeof(float) * 6);
+            memcpy(interp[i].right_arm, interp[num.right_arm-1].right_arm, sizeof(float) * 6);
         }
     }
     else
     {
         for (int i = num.left_arm; i < num.max; i++)
         {
-            memcpy(interp[i].left_arm, interp[num.left_arm].left_arm, sizeof(float) * 6);
+            memcpy(interp[i].left_arm, interp[num.left_arm-1].left_arm, sizeof(float) * 6);
         }
     }
 }
