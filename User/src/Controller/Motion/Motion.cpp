@@ -62,15 +62,18 @@ void *Motion::_moveDriver()
             if (filter_enable)
             {
                 auto now = steady_clock::now();
-                #if SLEEP_FOR
-                    auto now_time_t = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
-                    auto next_second = std::chrono::microseconds(now_time_t % 1000);
-                    std::this_thread::sleep_for(next_second);
-                #else
-                    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
-                    auto next_ms = now_ms + std::chrono::milliseconds(1);
-                    std::this_thread::sleep_until(next_ms);
-                #endif
+#if SLEEP_FOR
+                auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+                auto next_ms = now_ms + 1;
+                auto next_time = std::chrono::milliseconds(next_ms);
+                auto next_time_point = std::chrono::steady_clock::time_point(next_time);
+                auto sleep_duration = next_time_point - now;
+                std::this_thread::sleep_for(sleep_duration);
+#else
+                auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+                auto next_ms = now_ms + std::chrono::milliseconds(1);
+                std::this_thread::sleep_until(next_ms);
+#endif
                 int res = driver->set_robot_joints(robot_joints_filtered);
                 // auto wake_up_time = steady_clock::now();
                 // auto wake_up_time_t = duration_cast<microseconds>(wake_up_time.time_since_epoch()).count();

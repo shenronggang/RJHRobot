@@ -20,7 +20,7 @@
 #define HEAD_DOF 2
 #define WAIST_DOF 3
 #define ARM_DOF 7
-#define SLEEP_FOR 0
+#define SLEEP_FOR 1
 using namespace std::chrono;
 static void* threadFunc(void* arg);
 
