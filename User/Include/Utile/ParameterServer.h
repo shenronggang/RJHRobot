@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include "RobotData.h" // 假设 RobotData 定义在这个头文件中
 
 class ParameterServer
@@ -34,7 +35,7 @@ private:
     static std::shared_ptr<ParameterServer> instance;
     static std::once_flag initInstanceFlag;
 
-    std::mutex dataMutex_;
+    std::shared_mutex dataMutex_;
 };
 
 #endif // PARAMETERSERVER_H

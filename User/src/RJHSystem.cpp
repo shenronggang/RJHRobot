@@ -66,9 +66,9 @@ void RJHSystem::recvRobotCmd()
         parameter_server->getRobotInfo(_robot_cmd);
         parameter_server->getRobotInfo(_joint_cmd);
         // 判断运行状态命令
-        if (_robot_cmd.running_mode == 1)
+        if (_robot_cmd.running_mode == 2)
         {
-            motion->motionStateSwitch(3);
+            motion->motionStateSwitch(Motion::MotionState::READY_OK);
         }
         // 判断使能命令
         if (_robot_cmd.enable == 1)
@@ -180,7 +180,7 @@ void RJHSystem::manual(RobotData::RobotCmd _robot_cmd, RobotData::JointCmd _join
     {
         if (system_state == SystemState::MANUAL && _robot_cmd.running_mode == 2)
         {
-            motion->motionStateSwitch(4);
+            motion->motionStateSwitch(Motion::MotionState::READY_OK);
             motion->robotMoveJoint(_joint_cmd);
         }
     }
@@ -194,14 +194,14 @@ void RJHSystem::movej(RobotData::RobotCmd _robot_cmd, RobotData::JointCmd _joint
 {
     if (system_state == SystemState::IDLE)
     {
-        system_state = SystemState::MOVEL;
+        system_state = SystemState::MOVEJ;
         std::cout << "system state chang modle movej :" << std::endl;
     }
-    else if (system_state == SystemState::MOVEL)
+    else if (system_state == SystemState::MOVEJ)
     {
-        if (system_state == SystemState::MOVEL && _robot_cmd.running_mode == 2)
+        if (system_state == SystemState::MOVEJ && _robot_cmd.running_mode == 2)
         {
-            motion->motionStateSwitch(4);
+            motion->motionStateSwitch(Motion::MotionState::READY_OK);
             motion->robotMoveCartesion(_joint_cmd);
         }
     }
@@ -222,7 +222,7 @@ void RJHSystem::motion_capture(RobotData::RobotCmd _robot_cmd, RobotData::JointC
     {
         if (system_state == SystemState::MOTION_CAPTURE && _robot_cmd.running_mode == 2)
         {
-            motion->motionStateSwitch(4);
+            motion->motionStateSwitch(Motion::MotionState::READY_OK);
         }
         motion->robotMoveCartesion(_joint_cmd);
     }

@@ -10,38 +10,37 @@
 #include "forward_kinematic_with_ofst.h"
 #include <yaml-cpp/yaml.h>
 #include <vector>
+#include <chrono>
+#include <iomanip>
+#include <ctime>
+#include <pthread.h>
+#include <iostream>
+#include <unistd.h>
+
 #define HEAD_DOF 2
 #define WAIST_DOF 3
 #define ARM_DOF 7
+#define SLEEP_FOR 0
+using namespace std::chrono;
+static void* threadFunc(void* arg);
+
 class Motion
 {
 private:
     std::unique_ptr<DriverBase> driver;
     std::string driver_name;
-    std::thread _moveDriverThread;
     DriverBase::RobotJoints robot_current_joints, robot_current_pos,
         robot_move_joints, robot_move_cartesion;
-
-    enum MotionState
-    {
-        INIT = 0,
-        INIT_OK,
-        READY,
-        READY_OK,
-        RUN,
-        STOP,
-        DISABLE,
-        ERROR
-    };
-
-    MotionState motion_state = MotionState::INIT;
+    
     LowFilter head_filters[2];
     LowFilter waist_filters[3] = {
         LowFilter(1, 0, 1.667, 0.261, 0, 0, 0.001, 1, 500),
-        LowFilter(),                                      
-        LowFilter()                                       
-    };
-    ;
+        LowFilter(),
+        LowFilter()};
+    pthread_t _moveDriverThread;
+    pthread_attr_t attr;
+    struct sched_param param;
+
     LowFilter left_arm_filters[7];
     LowFilter right_arm_filters[7];
     std::mutex filter_mtx;
@@ -75,6 +74,19 @@ private:
     MotionConfig motion_config;
 
 public:
+    enum MotionState
+    {
+        INIT = 0,
+        INIT_OK,
+        READY,
+        READY_OK,
+        RUN,
+        STOP,
+        DISABLE,
+        ERROR
+    };
+
+    MotionState motion_state = MotionState::INIT;
     Motion(const std::string &type);
     void loadMotionConfig(std::string path = "/home/robot/Work/system/robot_config/RJHRobot/User/config/blackrobot_config.yaml");
     ~Motion();
@@ -85,7 +97,6 @@ public:
     void enableRobot();
     void diableRobot();
     void getCurrentPosAndJoints(RobotData::RobotPublishInfo &robot_send_info_);
-    void _moveDriver();
     void robotMoveJoint(RobotData::JointCmd &joint_cmd_);
     void robotMoveCartesion(RobotData::JointCmd &joint_cmd_);
     void motionStateSwitch(int running_mode);
@@ -95,6 +106,7 @@ public:
     void joints2Cartesion(DriverBase::RobotJoints &robot_current_joints, DriverBase::RobotJoints &robot_move_cartesion);
     void _ik(double *pos, bool l_or_r, double *ik_joint);
     void _fk(double *fk_joints, bool l_or_r, double *cart);
+    void* _moveDriver();
 };
 
 #endif // MOTION_H

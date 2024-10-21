@@ -31,21 +31,50 @@ Motion::Motion(const std::string &driver_name) : driver_name(driver_name), filte
 
     initFilterJoints();
     getFilterJoints(robot_joints_filtered);
-    _moveDriverThread = std::thread(&Motion::_moveDriver, this);
-    motion_state = MotionState::INIT_OK;
     motor_running = true;
+
+    pthread_attr_init(&attr);
+    pthread_create(&_moveDriverThread, &attr, threadFunc, this);
+    param.sched_priority = 85;
+    if (pthread_setschedparam(_moveDriverThread, SCHED_FIFO, &param) != 0)
+    {
+        std::cerr << "Failed to set thread priority." << std::endl;
+    }
+    else
+    {
+        std::cout << "Thread priority set to SCHED_FIFO with priority 85." << std::endl;
+    }
+    motion_state = MotionState::INIT_OK;
 }
 
-void Motion::_moveDriver()
+void *threadFunc(void *arg)
+{
+    Motion *motion = static_cast<Motion *>(arg);
+    return motion->_moveDriver(); // 调用成员函数
+}
+void *Motion::_moveDriver()
 {
     while (motor_running)
     {
         getFilterJoints(robot_joints_filtered);
-        if (motion_state == MotionState::RUN && motor_on == 1)
+        if (motion_state == MotionState::READY_OK && motor_on)
         {
             if (filter_enable)
             {
+                auto now = steady_clock::now();
+                #if SLEEP_FOR
+                    auto now_time_t = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
+                    auto next_second = std::chrono::microseconds(now_time_t % 1000);
+                    std::this_thread::sleep_for(next_second);
+                #else
+                    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+                    auto next_ms = now_ms + std::chrono::milliseconds(1);
+                    std::this_thread::sleep_until(next_ms);
+                #endif
                 int res = driver->set_robot_joints(robot_joints_filtered);
+                // auto wake_up_time = steady_clock::now();
+                // auto wake_up_time_t = duration_cast<microseconds>(wake_up_time.time_since_epoch()).count();
+                // std::cout << "Woke up at: " << wake_up_time_t << " microseconds since epoch." << std::endl;
                 if (res != 0)
                 {
                     printf("set move joints to ethercat error: %d", res);
@@ -58,6 +87,7 @@ void Motion::_moveDriver()
         usleep(1000);
     }
     std::cout << "[Motion]: Driver running error!!!!" << std::endl;
+    return nullptr;
 }
 
 void loadMotionConfig()
@@ -263,7 +293,7 @@ void Motion::cartesion2Joints(DriverBase::RobotJoints &cartesion, DriverBase::Ro
         left_ik_joints[ARM_DOF], right_ik_joints[ARM_DOF];
     int left_ik_state, right_ik_state;
     memcpy(joints.head, cartesion.head, sizeof(float) * HEAD_DOF);
-    memcpy(joints.waist, cartesion.waist, sizeof(float)* WAIST_DOF);   
+    memcpy(joints.waist, cartesion.waist, sizeof(float) * WAIST_DOF);
     for (int i = 0; i < ARM_DOF; i++)
     {
         left_pos[i] = static_cast<double>(cartesion.left_arm[i]);
@@ -276,7 +306,6 @@ void Motion::cartesion2Joints(DriverBase::RobotJoints &cartesion, DriverBase::Ro
         joints.left_arm[i] = static_cast<float>(driver->radToDeg(left_ik_joints[i]));
         joints.right_arm[i] = static_cast<float>(driver->radToDeg(right_ik_joints[i]));
     }
-    
 }
 
 void Motion::joints2Cartesion(DriverBase::RobotJoints &joints, DriverBase::RobotJoints &cartesion)
@@ -449,4 +478,7 @@ void Motion::loadMotionConfig(std::string path)
 
 Motion::~Motion()
 {
+    motor_running = false;
+    pthread_join(_moveDriverThread, NULL);
+    pthread_attr_destroy(&attr);
 }
