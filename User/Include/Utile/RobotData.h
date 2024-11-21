@@ -16,6 +16,7 @@ public:
     struct RobotPublishInfo
     {
         float joint_q_head[DOF_HEAD];     // rad
+        float arm_cartesion[2][DOF_ARM];
         float joint_qd_head[DOF_HEAD];    // rad/s
         float joint_tau_head[DOF_HEAD];   // Nm
         float joint_power_head[DOF_HEAD]; // W
@@ -80,11 +81,13 @@ public:
         uint16_t sensor_ring_finger_r[4];
         uint16_t sensor_little_finger_r[4];
         // uint16_t sensor_palm_r [63];
+        
     };
 
     struct Servo_Cmd_Basic_Info
     {
         float ee_motion[2][DOF_ARM];
+        float arm_cartesion[2][DOF_ARM];
         float dq_exp[2][DOF_ARM];
         float tau_exp[2][DOF_ARM];
         int q_enable[2][DOF_ARM];
@@ -111,6 +114,7 @@ public:
         int motion_mode;
         int running_mode;
         int error;
+        int reset_feedback;     //reset error feedback ,0:defult 1:reset_ok 清错成功=1，如果接收到reset_error=0时，复位
     };
 
     struct Motion_Data_Recieve
@@ -151,6 +155,7 @@ public:
         int enable;
         int filter_enable;
         int joint_mode; /////  0:POSITION, 1:VELOCITY, 2:CURRENT;
+        int reset_error;    //
     };
     struct JointCmd
     {

@@ -1,5 +1,5 @@
-#ifndef BROBOT_H
-#define BROBOT_H
+#ifndef BLACKROBOT_H
+#define BLACKROBOT_H
 #include <HYYRobotInterface.h>
 #include <DriverBase.h>
 #include <memory>
@@ -11,17 +11,19 @@
 
 using namespace HYYRobotBase;
 
-class BRobot : public DriverBase
+class BlackRobot : public DriverBase
 {
 private:
     struct RobotNames
     {
+        const char *head;
         const char *waist;
         const char *left_arm;
         const char *right_arm;
     };
     struct RobotJointsNum
     {
+        int head_num;
         int waist_num;
         int left_arm_num;
         int right_arm_num;
@@ -33,10 +35,10 @@ private:
     double ec_cur_cycle = 0;
     RobotNames robot_names;
     RobotJointsNum robot_joint_num;
-
+    
 public:
-    static void InitDriver(int argc, char *argv[]);
-    BRobot();
+    void InitDriver(int argc, char *argv[]);
+    BlackRobot();
     inline void set_ec_cycle(double cycle)
     {
         initUserTimer(&timer, 0, cycle);
@@ -54,12 +56,10 @@ public:
     int get_robot_joints(RobotJoints &rob_joints) const override;
     int set_robot_joints(RobotJoints &robot_joints) const override;
     int set_cartesion(RobotJoints &robot_joints) const override;
-    int ik(RobotJoints &cartesion, RobotJoints &robot_joint) const override;
-    int fk(RobotJoints &robot_joint, RobotJoints &cartesion) const override;
     int reset_driver_error() const override;
     void run_test();
     int set_axis_joint(const char *robot_name, int axis_ID = 1);
-    virtual ~BRobot();
+    virtual ~BlackRobot();
 };
 
-#endif // BROBOT_H
+#endif // BLACKROBOT_H
